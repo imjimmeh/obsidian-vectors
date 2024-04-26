@@ -86,7 +86,10 @@ export default class ObsidianVectorPlugin extends Plugin {
 
 		switch (this.settings.vectorSettings.store) {
 			case VectorStore.CHROMA: {
+				//TODO: Don't reinitialise on setting change, just update settings
 				this.vectorStore = new ChromaStore({
+					//TODO: Move embeddings to here, update on setting change
+					//TODO: Add embeddings to settings
 					embeddings: new OllamaEmbeddings({
 						baseUrl: "http://192.168.1.252:11434",
 					}),

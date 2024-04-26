@@ -45,6 +45,8 @@ export const queryVectorStore = async (vault: Vault) => {
 		chromaDbSettings(vault)
 	);
 
+	//TODO: Move this chat functionality elsewhre
+
 	const retriever = vectorStore.asRetriever();
 
 	var chatLlm = new ChatOllama({
