@@ -1,19 +1,17 @@
 import { ObsidianVectorPluginSettings, VectorStore } from "settings/types";
-import { App, Editor, MarkdownView, Notice, Plugin } from "obsidian";
+import { App, Notice, Plugin } from "obsidian";
 import SampleModal from "modal";
 import VectorSettingsTab from "settings/settings_tab";
 import { DEFAULT_SETTINGS } from "settings/default";
-import {
-	initialiseVectorStore,
-	queryVectorStore,
-} from "embeddings/process_markdown_file";
 import VectorDb from "vectors/vector_store";
 import ChromaStore from "vectors/chroma_store";
 import { OllamaEmbeddings } from "@langchain/community/embeddings/ollama";
+import MarkdownFileProcessor from "files/markdown_file_processor";
 
 export default class ObsidianVectorPlugin extends Plugin {
 	settings: ObsidianVectorPluginSettings;
 	vectorStore: VectorDb;
+	markdownProcessor: MarkdownFileProcessor = new MarkdownFileProcessor();
 
 	async onload() {
 		await this.loadSettings();
@@ -48,8 +46,9 @@ export default class ObsidianVectorPlugin extends Plugin {
 			id: "initialise-vector-db",
 			name: "Initialise Vector DB",
 			callback: async () => {
-				const vault = this.app.vault;
-				await queryVectorStore(vault);
+				this.vectorStore.initialiseDb();
+				this.markdownProcessor.addAllDocumentsToVectorStore(this);
+
 				/*
 				const vaultPath = await initialiseVectorStore(
 					vault.getMarkdownFiles(),
@@ -64,8 +63,7 @@ export default class ObsidianVectorPlugin extends Plugin {
 
 		// If the plugin hooks up any global DOM events (on parts of the app that doesn't belong to this plugin)
 		// Using this function will automatically remove the event listener when this plugin is disabled.
-		this.registerDomEvent(document, "click", (evt: MouseEvent) => {
-		});
+		this.registerDomEvent(document, "click", (evt: MouseEvent) => {});
 
 		// When registering intervals, this function will automatically clear the interval when the plugin is disabled.
 		this.registerInterval(
@@ -86,11 +84,15 @@ export default class ObsidianVectorPlugin extends Plugin {
 	async saveSettings() {
 		await this.saveData(this.settings);
 
-		switch(this.settings.vectorSettings.store){
-			case VectorStore.CHROMA:{
-				this.vectorStore = new ChromaStore({ embeddings: new OllamaEmbeddings({ baseUrl: this.settings.llmSettings.base_url }),
-													vault: this.app.vault,
-													settings: this.settings.vectorSettings });
+		switch (this.settings.vectorSettings.store) {
+			case VectorStore.CHROMA: {
+				this.vectorStore = new ChromaStore({
+					embeddings: new OllamaEmbeddings({
+						baseUrl: "http://192.168.1.252:11434",
+					}),
+					vault: this.app.vault,
+					settings: this.settings.vectorSettings,
+				});
 				break;
 			}
 		}

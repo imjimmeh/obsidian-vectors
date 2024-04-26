@@ -52,11 +52,12 @@ export const queryVectorStore = async (vault: Vault) => {
 		model: "openchat",
 	});
 
-	const prompt =
-		PromptTemplate.fromTemplate(`Answer the question based only on the following context:
-	{context}
+	const prompt = PromptTemplate.fromTemplate(
+		`Answer the question based only on the following context:
+		{context}
 	
-	Question: {question}`);
+		Question: {question}`
+	);
 
 	const chain = RunnableSequence.from([
 		{
@@ -72,6 +73,7 @@ export const queryVectorStore = async (vault: Vault) => {
 
 	console.log(result);
 };
+
 export const initialiseVectorStore = async (files: TFile[], vault: Vault) => {
 	console.log(vault.getName());
 	const embeddings = new OllamaEmbeddings({
