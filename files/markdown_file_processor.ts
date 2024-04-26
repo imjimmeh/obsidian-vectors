@@ -8,10 +8,10 @@ export default class MarkdownFileProcessor {
 		chunkOverlap: 20,
 	});
 
-	async addAllDocuments(plugin: ObsidianVectorPlugin){
+	async addAllDocumentsToVectorStore(plugin: ObsidianVectorPlugin) {
 		const files = plugin.app.vault.getMarkdownFiles();
 
-		for(const file of files){
+		for (const file of files) {
 			await this.addFile(plugin, file);
 		}
 	}
@@ -20,14 +20,16 @@ export default class MarkdownFileProcessor {
 		console.log(`Processing ${file.name}`);
 
 		const fileContents = await plugin.app.vault.cachedRead(file);
-		const documents = await this._splitter.createDocuments([fileContents], this.createMetadata(file));
+		const documents = await this._splitter.createDocuments(
+			[fileContents],
+			this.createMetadata(file)
+		);
 		await plugin.vectorStore.addDocuments({ documents });
 
 		console.log(`Added documents`, documents);
 	}
-	
+
 	private createMetadata(file: TFile): Record<string, any>[] | undefined {
-		return [{ "fileName": file.name, "filePath": file.path }];
+		return [{ fileName: file.name, filePath: file.path }];
 	}
 }
-
