@@ -1,4 +1,4 @@
-import { ObsidianVectorPluginSettings } from "settings/types";
+import { ObsidianVectorPluginSettings, VectorStore } from "settings/types";
 import { App, Editor, MarkdownView, Notice, Plugin } from "obsidian";
 import SampleModal from "modal";
 import VectorSettingsTab from "settings/settings_tab";
@@ -7,10 +7,13 @@ import {
 	initialiseVectorStore,
 	queryVectorStore,
 } from "embeddings/process_markdown_file";
-import { ChromaClient } from "chromadb";
+import VectorDb from "vectors/vector_store";
+import ChromaStore from "vectors/chroma_store";
+import { OllamaEmbeddings } from "@langchain/community/embeddings/ollama";
 
 export default class ObsidianVectorPlugin extends Plugin {
 	settings: ObsidianVectorPluginSettings;
+	vectorStore: VectorDb;
 
 	async onload() {
 		await this.loadSettings();
@@ -55,26 +58,6 @@ export default class ObsidianVectorPlugin extends Plugin {
 				*/
 			},
 		});
-		// This adds a complex command that can check whether the current state of the app allows execution of the command
-		this.addCommand({
-			id: "open-sample-modal-complex",
-			name: "Open sample modal (complex)",
-			checkCallback: (checking: boolean) => {
-				// Conditions to check
-				const markdownView =
-					this.app.workspace.getActiveViewOfType(MarkdownView);
-				if (markdownView) {
-					// If checking is true, we're simply "checking" if the command can be run.
-					// If checking is false, then we want to actually perform the operation.
-					if (!checking) {
-						new SampleModal(this.app).open();
-					}
-
-					// This command will only show up in Command Palette when the check function returns true
-					return true;
-				}
-			},
-		});
 
 		// This adds a settings tab so the user can configure various aspects of the plugin
 		this.addSettingTab(new VectorSettingsTab(this.app, this));
@@ -82,7 +65,6 @@ export default class ObsidianVectorPlugin extends Plugin {
 		// If the plugin hooks up any global DOM events (on parts of the app that doesn't belong to this plugin)
 		// Using this function will automatically remove the event listener when this plugin is disabled.
 		this.registerDomEvent(document, "click", (evt: MouseEvent) => {
-			console.log("click", evt);
 		});
 
 		// When registering intervals, this function will automatically clear the interval when the plugin is disabled.
@@ -103,5 +85,14 @@ export default class ObsidianVectorPlugin extends Plugin {
 
 	async saveSettings() {
 		await this.saveData(this.settings);
+
+		switch(this.settings.vectorSettings.store){
+			case VectorStore.CHROMA:{
+				this.vectorStore = new ChromaStore({ embeddings: new OllamaEmbeddings({ baseUrl: this.settings.llmSettings.base_url }),
+													vault: this.app.vault,
+													settings: this.settings.vectorSettings });
+				break;
+			}
+		}
 	}
 }
