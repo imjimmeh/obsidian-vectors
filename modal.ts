@@ -1,4 +1,4 @@
-import { Modal } from "obsidian";
+import { Modal, App } from "obsidian";
 
 export default class SampleModal extends Modal {
 	constructor(app: App) {
@@ -6,12 +6,12 @@ export default class SampleModal extends Modal {
 	}
 
 	onOpen() {
-		const {contentEl} = this;
-		contentEl.setText('Woah!');
+		const { contentEl } = this;
+		contentEl.setText("Woah!");
 	}
 
 	onClose() {
-		const {contentEl} = this;
+		const { contentEl } = this;
 		contentEl.empty();
 	}
 }
