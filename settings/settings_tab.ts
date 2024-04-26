@@ -10,30 +10,70 @@ export default class VectorSettingsTab extends PluginSettingTab {
 	}
 
 	display(): void {
-		const {containerEl} = this;
+		const { containerEl } = this;
 
 		containerEl.empty();
 
-		new Setting(containerEl)
-			.setName('LLM Base URL')
-			.setDesc('Base URL for LLM API')
-			.addText(text => text
-				.setPlaceholder('http://localhost:11434')
-				.setValue(this.plugin.settings.llmSettings.base_url)
-				.onChange(async (value) => {
-					this.plugin.settings.llmSettings.base_url = value;
-					await this.plugin.saveSettings();
-				}));
+		this.addLlmSettings(containerEl);
+		this.addVectorSettings(containerEl);
+	}
 
-        new Setting(containerEl)
-            .setName('LLM Model')
-            .setDesc('What model to use')
-            .addText(text => text
-                    .setPlaceholder('llama3')
-                    .setValue(this.plugin.settings.llmSettings.model)
-                    .onChange(async (value) => {
-                        this.plugin.settings.llmSettings.model = value;
-                        await this.plugin.saveSettings();
-                    }));
+	private addLlmSettings(containerEl: HTMLElement) {
+		new Setting(containerEl)
+			.setName("LLM Base URL")
+			.setDesc("Base URL for LLM API")
+			.addText((text) =>
+				text
+					.setPlaceholder("http://localhost:11434")
+					.setValue(this.plugin.settings.llmSettings.base_url)
+					.onChange(async (value) => {
+						this.plugin.settings.llmSettings.base_url = value;
+						await this.plugin.saveSettings();
+					})
+			);
+
+		new Setting(containerEl)
+			.setName("LLM Model")
+			.setDesc("What model to use")
+			.addText((text) =>
+				text
+					.setPlaceholder("llama3")
+					.setValue(this.plugin.settings.llmSettings.model)
+					.onChange(async (value) => {
+						this.plugin.settings.llmSettings.model = value;
+						await this.plugin.saveSettings();
+					})
+			);
+	}
+
+	private addVectorSettings(containerEl: HTMLElement) {
+		new Setting(containerEl)
+			.setName("Vector DB Base URL")
+			.setDesc("Base URL for Vector DB Store")
+			.addText((text) =>
+				text
+					.setPlaceholder("http://localhost:8000")
+					.setValue(this.plugin.settings.llmSettings.base_url)
+					.onChange(async (value) => {
+						this.plugin.settings.vectorSettings.base_url = value;
+						await this.plugin.saveSettings();
+					})
+			);
+
+		//TODO: dropdown of vector store
+		/*
+		new Setting(containerEl)
+			.setName("LLM Model")
+			.setDesc("What model to use")
+			.addText((text) =>
+				text
+					.setPlaceholder("llama3")
+					.setValue(this.plugin.settings.llmSettings.model)
+					.onChange(async (value) => {
+						this.plugin.settings.llmSettings.model = value;
+						await this.plugin.saveSettings();
+					})
+			);
+			*/
 	}
 }
