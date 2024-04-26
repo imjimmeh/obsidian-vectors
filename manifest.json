@@ -1,0 +1,11 @@
+{
+	"id": "obsidian-vectors",
+	"name": "Obsidian Vectors",
+	"version": "0.0.1",
+	"minAppVersion": "0.15.0",
+	"description": "Better LLM integration for Obsidian.",
+	"author": "Jim Washbrook",
+	"authorUrl": "",
+	"fundingUrl": "",
+	"isDesktopOnly": false
+}
