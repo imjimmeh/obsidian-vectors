@@ -34,8 +34,14 @@ export default class ObsidianVectorPlugin extends Plugin {
 		this.addSettingTab(new VectorSettingsTab(this.app, this));
 
 		this.registerEvent(
-			this.app.vault.on("modify", (file: TFile) =>
+			this.app.metadataCache.on("changed", (file: TFile) =>
 				this.markdownProcessor.updateFile(file)
+			)
+		);
+
+		this.registerEvent(
+			this.app.metadataCache.on("deleted", (file: TFile) =>
+				this.markdownProcessor.deleteFile(file)
 			)
 		);
 	}
@@ -73,7 +79,6 @@ export default class ObsidianVectorPlugin extends Plugin {
 				break;
 			}
 		}
-
 		await this.vectorStore.initialiseDb();
 	}
 }

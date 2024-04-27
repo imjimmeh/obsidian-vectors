@@ -38,15 +38,34 @@ export default class ChromaStore extends VectorDb {
 
 	addDocuments({
 		documents,
+		filePath,
+		fileName,
 		ids,
 	}: {
 		documents: Document<Record<string, any>>[];
+		filePath: string;
+		fileName: string;
 		ids?: string[] | null;
 	}): Promise<void | string[]> {
-		return this._db.addDocuments(documents, { ids: ids });
+		return this._db.addDocuments(documents, {
+			ids: ids,
+			metadata: { fileName: fileName, filePath: filePath },
+		});
 	}
 
-	deleteDocuments({ filePaths }: { filePaths: string[] }): Promise<void> {
-		return this._db.delete({ filePath: { $in: filePaths } });
+	async deleteDocumentsForFile({
+		filePath,
+	}: {
+		filePath: string;
+	}): Promise<void> {
+		console.log("Deleting embeddings for " + filePath);
+
+		const result = await this.collection.delete({
+			where: { filePath: { $eq: filePath } },
+		});
+
+		console.log("Deletion result", result);
+
+		return;
 	}
 }

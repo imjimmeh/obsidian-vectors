@@ -3,6 +3,8 @@ import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import ObsidianVectorPlugin from "vector_plugin";
 import Notifications from "../obsidian/notifications";
 
+//TODO: Make abstract class
+//THINK: Should this be a child of the vector store, or something else?
 export default class MarkdownFileProcessor {
 	notifications = new Notifications();
 
@@ -26,6 +28,9 @@ export default class MarkdownFileProcessor {
 
 		this.notifications.displayMessage("Processing files...");
 
+		//TODO: Consider just adding all the files into the "upadedFiles" field (and renaming that),
+		//That way, that can just be _the thing_ that does the updates/adding/etc
+		//... Maybe deletes as well? Make it contain objects with a file status?
 		for (let x = 0; x < files.length; x++) {
 			const file = files[x];
 			await this.addFile(
@@ -53,6 +58,12 @@ export default class MarkdownFileProcessor {
 		for (const file of filesToUpdate) {
 			this.addFile(file);
 		}
+
+		this.notifications.hide();
+	}
+
+	async deleteFile(file: TFile) {
+		this.plugin.vectorStore.deleteDocumentsForFile({ filePath: file.path });
 	}
 
 	private async addFile(file: TFile, notificationMessage?: string) {
@@ -70,7 +81,14 @@ export default class MarkdownFileProcessor {
 
 		const ids = documents.map((_, index) => `${file.name}_${index}`);
 
-		await this.plugin.vectorStore.addDocuments({ documents, ids });
+		await this.plugin.vectorStore.addDocuments({
+			documents: documents,
+			ids: ids,
+			fileName: file.name,
+			filePath: file.path,
+		});
+
+		console.log(`Embedded documents for ${file.name}`);
 	}
 
 	private createMetadata(file: TFile): Record<string, any>[] | undefined {
