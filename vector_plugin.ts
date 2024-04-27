@@ -1,9 +1,8 @@
-import { ObsidianVectorPluginSettings, VectorStore } from "settings/types";
+import { type ObsidianVectorPluginSettings, VectorStore } from "settings/types";
 import {
 	App,
-	CachedMetadata,
 	Plugin,
-	PluginManifest,
+	type PluginManifest,
 	TAbstractFile,
 	TFile,
 	WorkspaceLeaf,
@@ -15,11 +14,13 @@ import ChromaStore from "vectors/chroma_store";
 import { OllamaEmbeddings } from "@langchain/community/embeddings/ollama";
 import MarkdownFileProcessor from "files/markdown_file_processor";
 import ChatView, { ChatViewType } from "chat/chat_view";
+import LlmChat from "chat/llm_chat";
 
 export default class ObsidianVectorPlugin extends Plugin {
 	settings: ObsidianVectorPluginSettings = DEFAULT_SETTINGS;
-	vectorStore: VectorDb;
+	vectorStore: VectorDb | null = null;
 	markdownProcessor: MarkdownFileProcessor;
+	llmChat: LlmChat | null = null;
 
 	constructor(app: App, manifest: PluginManifest) {
 		super(app, manifest);
@@ -28,15 +29,21 @@ export default class ObsidianVectorPlugin extends Plugin {
 	}
 
 	async onload() {
-		this.registerView(ChatViewType, (leaf) => new ChatView(leaf));
 		await this.loadSettings();
 		await this.initialiseStore();
+
+		this.llmChat = new LlmChat(this);
+		this.registerView(
+			ChatViewType,
+			(leaf) => new ChatView(leaf, this.llmChat!)
+		);
+
 		// This adds an editor command that can perform some operation on the current editor instance
 		this.addCommand({
 			id: "initialise-vector-db",
 			name: "Initialise Vector DB",
 			callback: async () => {
-				this.vectorStore.initialiseDb();
+				this.vectorStore!.initialiseDb();
 				this.markdownProcessor.addAllDocumentsToVectorStore();
 			},
 		});
@@ -58,9 +65,9 @@ export default class ObsidianVectorPlugin extends Plugin {
 		this.registerEvent(
 			this.app.vault.on(
 				"rename",
-				async (file: TFile, oldPath: string) => {
+				async (file: TAbstractFile, oldPath: string) => {
 					await this.markdownProcessor.deleteFile(oldPath);
-					await this.markdownProcessor.addFile(file);
+					await this.markdownProcessor.addFile(file as TFile);
 				}
 			)
 		);

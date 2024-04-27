@@ -2,8 +2,8 @@ import ObsidianVectorPlugin from "vector_plugin";
 import { ChatOllama } from "@langchain/community/chat_models/ollama";
 import { StringOutputParser } from "@langchain/core/output_parsers";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
-import { Runnable, RunnableConfig } from "@langchain/core/runnables";
-import { ParamsFromFString } from "@langchain/core/prompts";
+import { Runnable, type RunnableConfig } from "@langchain/core/runnables";
+import type { ParamsFromFString } from "@langchain/core/prompts";
 
 export default class LlmChat {
 	plugin: ObsidianVectorPlugin;
@@ -26,8 +26,9 @@ export default class LlmChat {
 	}
 
 	async sendMessage(message: string): Promise<string> {
+		console.log(`Sending message: "${message}"`);
 		const result = await this.chain.invoke({ question: message });
-
+		console.log(`Received response: "${result}"`);
 		return result;
 	}
 }

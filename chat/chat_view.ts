@@ -1,9 +1,15 @@
 import { ItemView, View, WorkspaceLeaf } from "obsidian";
+import ChatComponent from "./ChatComponent.svelte";
+import type LlmChat from "./llm_chat";
 
 export const ChatViewType = "ChatView;";
 export default class ChatView extends ItemView {
-	constructor(leaf: WorkspaceLeaf) {
+	component: ChatComponent | null = null;
+	llmChat: LlmChat;
+
+	constructor(leaf: WorkspaceLeaf, llmChat: LlmChat) {
 		super(leaf);
+		this.llmChat = llmChat;
 	}
 
 	getViewType(): string {
@@ -15,11 +21,12 @@ export default class ChatView extends ItemView {
 	}
 
 	async onOpen() {
-		const container = this.containerEl.children[1];
-		container.empty();
-		container.createEl("h4", { text: "Example view" });
-
-		container.createEl("input", { type: "text" });
+		this.component = new ChatComponent({
+			target: this.contentEl,
+			props: {
+				llmChat: this.llmChat,
+			},
+		});
 	}
 
 	async onClose() {

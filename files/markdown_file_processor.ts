@@ -63,7 +63,7 @@ export default class MarkdownFileProcessor {
 	}
 
 	async deleteFile(filePath: string) {
-		this.plugin.vectorStore.deleteDocumentsForFile({ filePath: filePath });
+		this.plugin.vectorStore!.deleteDocumentsForFile({ filePath: filePath });
 	}
 
 	async addFile(file: TFile, notificationMessage?: string) {
@@ -81,7 +81,7 @@ export default class MarkdownFileProcessor {
 
 		const ids = documents.map((_, index) => `${file.name}_${index}`);
 
-		await this.plugin.vectorStore.addDocuments({
+		await this.plugin.vectorStore!.addDocuments({
 			documents: documents,
 			ids: ids,
 		});
@@ -89,7 +89,10 @@ export default class MarkdownFileProcessor {
 		console.log(`Embedded documents for ${file.name}`);
 	}
 
-	private createMetadata(file: TFile): Record<string, any>[] | undefined {
+	private createMetadata(file: {
+		name: string;
+		path: string;
+	}): Record<string, any>[] | undefined {
 		return [{ fileName: file.name, filePath: file.path }];
 	}
 }
