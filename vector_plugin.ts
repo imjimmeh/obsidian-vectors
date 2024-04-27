@@ -1,5 +1,12 @@
 import { ObsidianVectorPluginSettings, VectorStore } from "settings/types";
-import { App, CachedMetadata, Plugin, PluginManifest, TFile } from "obsidian";
+import {
+	App,
+	CachedMetadata,
+	Plugin,
+	PluginManifest,
+	TAbstractFile,
+	TFile,
+} from "obsidian";
 import VectorSettingsTab from "settings/settings_tab";
 import { DEFAULT_SETTINGS } from "settings/default";
 import VectorDb from "vectors/vector_store";
@@ -41,7 +48,17 @@ export default class ObsidianVectorPlugin extends Plugin {
 
 		this.registerEvent(
 			this.app.metadataCache.on("deleted", (file: TFile) =>
-				this.markdownProcessor.deleteFile(file)
+				this.markdownProcessor.deleteFile(file.path)
+			)
+		);
+
+		this.registerEvent(
+			this.app.vault.on(
+				"rename",
+				async (file: TFile, oldPath: string) => {
+					await this.markdownProcessor.deleteFile(oldPath);
+					await this.markdownProcessor.addFile(file);
+				}
 			)
 		);
 	}

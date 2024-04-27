@@ -62,11 +62,11 @@ export default class MarkdownFileProcessor {
 		this.notifications.hide();
 	}
 
-	async deleteFile(file: TFile) {
-		this.plugin.vectorStore.deleteDocumentsForFile({ filePath: file.path });
+	async deleteFile(filePath: string) {
+		this.plugin.vectorStore.deleteDocumentsForFile({ filePath: filePath });
 	}
 
-	private async addFile(file: TFile, notificationMessage?: string) {
+	async addFile(file: TFile, notificationMessage?: string) {
 		this.notifications.displayMessage(
 			notificationMessage ??
 				`Embedding documents.\n\Processing: ${file.name}`
@@ -84,8 +84,6 @@ export default class MarkdownFileProcessor {
 		await this.plugin.vectorStore.addDocuments({
 			documents: documents,
 			ids: ids,
-			fileName: file.name,
-			filePath: file.path,
 		});
 
 		console.log(`Embedded documents for ${file.name}`);

@@ -28,13 +28,9 @@ export default abstract class VectorDb {
 
 	abstract addDocuments({
 		documents,
-		filePath,
-		fileName,
 		ids,
 	}: {
 		documents: Document<Record<string, any>>[];
-		filePath: string;
-		fileName: string;
 		ids?: string[] | null;
 	}): Promise<void | string[]>;
 
