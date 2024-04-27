@@ -15,6 +15,8 @@ import { formatDocumentsAsString } from "langchain/util/document";
 import { Document } from "@langchain/core/documents";
 import type { AIMessage } from "./message";
 
+const MinSimilarityScore = 0.65;
+
 export default class LlmChat {
 	plugin: ObsidianVectorPlugin;
 	llm: ChatOllama;
@@ -22,6 +24,7 @@ export default class LlmChat {
 	prompt = ChatPromptTemplate.fromTemplate(
 		"Using the context provided (if any), answer the question from the user.\n\nContext: {context}\n-------\n\nQuestion: {question}"
 	);
+
 	parser = new StringOutputParser();
 
 	chain: Runnable<any, any, RunnableConfig>;
@@ -34,13 +37,13 @@ export default class LlmChat {
 			model: this.plugin.settings.llmSettings.model,
 		});
 
-		const retriever = this.plugin.vectorStore!._db.asRetriever(20);
-
 		const answerChain = this.prompt.pipe(this.llm).pipe(this.parser);
 
 		const map = RunnableMap.from({
-			question: new RunnablePassthrough(),
-			docs: retriever,
+			question: new RunnablePassthrough<string>(),
+			docs: async (input: string) => {
+				return await this.getDocsBySimilarity(input);
+			},
 		});
 
 		const chain = map
@@ -51,8 +54,24 @@ export default class LlmChat {
 		this.chain = chain;
 	}
 
+	private async getDocsBySimilarity(input: string) {
+		const results =
+			await this.plugin.vectorStore?._db.similaritySearchWithScore(
+				input,
+				10
+			);
+
+		const filtered = results!
+			.filter((result) => result[1] > MinSimilarityScore)
+			.map((result) => result[0]);
+
+		return filtered;
+	}
+
 	async sendMessage(message: string): Promise<AIMessage> {
 		const result = await this.chain.invoke(message);
+
+		console.log(result);
 
 		const sources = this.getSourceDocumentPaths(result);
 

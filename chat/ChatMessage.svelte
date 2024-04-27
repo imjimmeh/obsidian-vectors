@@ -44,5 +44,9 @@
 
 	.message-source {
 		font-size: smaller;
+		margin-right: 5px;
+		background-color: lightblue;
+		border-radius: 5px;
+		color: #222;
 	}
 </style>
