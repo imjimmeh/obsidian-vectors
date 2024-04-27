@@ -20,11 +20,15 @@ export default class MarkdownFileProcessor {
 		console.log(`Processing ${file.name}`);
 
 		const fileContents = await plugin.app.vault.cachedRead(file);
+
 		const documents = await this._splitter.createDocuments(
 			[fileContents],
 			this.createMetadata(file)
 		);
-		await plugin.vectorStore.addDocuments({ documents });
+
+		const ids = documents.map((_, index) => `${file.name}_${index}`);
+
+		await plugin.vectorStore.addDocuments({ documents, ids });
 
 		console.log(`Added documents`, documents);
 	}

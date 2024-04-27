@@ -1,5 +1,5 @@
 import { ObsidianVectorPluginSettings, VectorStore } from "settings/types";
-import { App, Notice, Plugin } from "obsidian";
+import { App, Notice, Plugin, PluginManifest } from "obsidian";
 import SampleModal from "modal";
 import VectorSettingsTab from "settings/settings_tab";
 import { DEFAULT_SETTINGS } from "settings/default";
@@ -15,32 +15,7 @@ export default class ObsidianVectorPlugin extends Plugin {
 
 	async onload() {
 		await this.loadSettings();
-
-		// This creates an icon in the left ribbon.
-		const ribbonIconEl = this.addRibbonIcon(
-			"dice",
-			"Sample Plugin",
-			(evt: MouseEvent) => {
-				// Called when the user clicks the icon.
-				new Notice("This is a notice!");
-			}
-		);
-		// Perform additional things with the ribbon
-		ribbonIconEl.addClass("my-plugin-ribbon-class");
-
-		// This adds a status bar item to the bottom of the app. Does not work on mobile apps.
-		const statusBarItemEl = this.addStatusBarItem();
-		statusBarItemEl.setText("Status Bar Text");
-
-		// This adds a simple command that can be triggered anywhere
-		this.addCommand({
-			id: "open-sample-modal-simple",
-			name: "Open sample modal (simple)",
-			callback: () => {
-				new SampleModal(this.app).open();
-			},
-		});
-
+		await this.initialiseStore();
 		// This adds an editor command that can perform some operation on the current editor instance
 		this.addCommand({
 			id: "initialise-vector-db",
@@ -48,13 +23,6 @@ export default class ObsidianVectorPlugin extends Plugin {
 			callback: async () => {
 				this.vectorStore.initialiseDb();
 				this.markdownProcessor.addAllDocumentsToVectorStore(this);
-
-				/*
-				const vaultPath = await initialiseVectorStore(
-					vault.getMarkdownFiles(),
-					vault
-				);
-				*/
 			},
 		});
 
@@ -84,6 +52,10 @@ export default class ObsidianVectorPlugin extends Plugin {
 	async saveSettings() {
 		await this.saveData(this.settings);
 
+		this.initialiseStore();
+	}
+
+	private async initialiseStore() {
 		switch (this.settings.vectorSettings.store) {
 			case VectorStore.CHROMA: {
 				//TODO: Don't reinitialise on setting change, just update settings
@@ -99,5 +71,7 @@ export default class ObsidianVectorPlugin extends Plugin {
 				break;
 			}
 		}
+
+		await this.vectorStore.initialiseDb();
 	}
 }
