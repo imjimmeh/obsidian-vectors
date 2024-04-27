@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type LlmChat from "./llm_chat";
-	import type { Message } from "./message";
-
+	import type { Message, AIMessage } from "./message";
+	import ChatMessage from "./ChatMessage.svelte";
 	let messages: Message[] = [];
 	$: messages = [];
 
@@ -12,13 +12,21 @@
 		userMessage = "";
 
 		addMessage({ sender: "User", message: message });
+
 		const response = await llmChat.sendMessage(message);
 
-		addMessage({ sender: "AI", message: response });
+		addMessage(response);
 	};
 
 	const addMessage = (message: Message) => {
 		messages = [...messages, message];
+	};
+
+	const onTextAreaKeyPress = async (event: KeyboardEvent) => {
+		//Send message on shift + enter press
+		if (event.code == "Enter" && event.shiftKey) {
+			await postMessage();
+		}
 	};
 
 	let userMessage: string = "";
@@ -26,15 +34,47 @@
 
 <h2>Chat</h2>
 
-<div>
+<div class="messages">
 	{#each messages as message}
-		<div>
-			<p>{message.sender}</p>
-			<p>{message.message}</p>
-		</div>
+		<ChatMessage {message} />
 	{/each}
 </div>
-<div>
-	<input type="text" bind:value={userMessage} />
-	<button on:click={postMessage} />
+<div class="input-form">
+	<textarea
+		class="message-box"
+		bind:value={userMessage}
+		on:keypress={onTextAreaKeyPress}
+	/>
+	<div id="btn-container">
+		<button on:click={postMessage} id="send-message-btn">Send</button>
+	</div>
 </div>
+
+<style>
+	div.messages {
+		height: 80%;
+		overflow-y: scroll;
+	}
+
+	div.input-form {
+		height: 20%;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.message-box {
+		width: 100%;
+		resize: none;
+		height: 80%;
+	}
+
+	#btn-container {
+		margin-top: 5px;
+		display: flex;
+		justify-content: end;
+	}
+
+	#send-message-btn {
+		width: 50%;
+	}
+</style>

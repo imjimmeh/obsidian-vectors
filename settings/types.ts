@@ -12,8 +12,9 @@ export interface LlmSettings {
 export interface VectorDbSettings {
 	store: VectorStore;
 	base_url: string;
+	dbHasBeenInitialised: boolean;
 }
 
 export enum VectorStore {
-	CHROMA = "Chroma"
+	CHROMA = "Chroma",
 }

@@ -5,7 +5,7 @@ import { Embeddings } from "@langchain/core/embeddings";
 import type { VectorDbSettings } from "settings/types";
 
 export default abstract class VectorDb {
-	_db: VectorStore;
+	_db!: VectorStore;
 	_embeddings: Embeddings;
 	_vault: Vault;
 	_settings: VectorDbSettings;
@@ -25,6 +25,8 @@ export default abstract class VectorDb {
 	}
 
 	abstract initialiseDb(): Promise<void>;
+
+	abstract deleteCollection(): Promise<void>;
 
 	abstract addDocuments({
 		documents,

@@ -10,8 +10,8 @@ export default class ChromaStore
 	extends VectorDb
 	implements IEmbeddingFunction
 {
-	collection: Collection;
-	client: ChromaClient;
+	collection!: Collection;
+	client!: ChromaClient;
 
 	constructor({
 		embeddings,
@@ -27,18 +27,25 @@ export default class ChromaStore
 
 	async initialiseDb(): Promise<void> {
 		this.client = new ChromaClient({ path: this._settings.base_url });
-		//TODO: remove this once tested
-		//this.client.deleteCollection({ name: this._vault.getName() });
 
 		this.collection = await this.client.getOrCreateCollection({
 			name: this._vault.getName(),
 			embeddingFunction: this,
+			metadata: { "hnsw:space": "cosine" },
 		});
 
 		this._db = new Chroma(this._embeddings, {
 			collectionName: this._vault.getName(),
 			index: this.client,
 		});
+	}
+
+	async deleteCollection(): Promise<void> {
+		if (this.collection) {
+			await this.collection.delete();
+		} else {
+			await this.client.deleteCollection({ name: this._vault.getName() });
+		}
 	}
 
 	async generate(text: string[]): Promise<number[][]> {
@@ -57,8 +64,12 @@ export default class ChromaStore
 		});
 	}
 
-	deleteDocumentsForFile({ filePath }: { filePath: string }): Promise<void> {
-		const result = this.collection.delete({
+	async deleteDocumentsForFile({
+		filePath,
+	}: {
+		filePath: string;
+	}): Promise<void> {
+		const result = await this.collection.delete({
 			where: { filePath: filePath },
 		});
 

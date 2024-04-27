@@ -1,5 +1,5 @@
 import ObsidianVectorPlugin from "vector_plugin";
-import { App, PluginSettingTab, Setting } from "obsidian";
+import { App, ButtonComponent, PluginSettingTab, Setting } from "obsidian";
 import { DEFAULT_SETTINGS } from "./default";
 
 export default class VectorSettingsTab extends PluginSettingTab {
@@ -45,6 +45,31 @@ export default class VectorSettingsTab extends PluginSettingTab {
 						await this.plugin.saveSettings();
 					})
 			);
+
+		new ButtonComponent(containerEl)
+			.setButtonText("Delete container")
+			.setWarning()
+			.setTooltip("This will delete all vector settings!")
+			.setDisabled(
+				this.plugin.settings.vectorSettings.dbHasBeenInitialised
+			)
+			.onClick(async () => {
+				await this.plugin!.vectorStore!.deleteCollection();
+				this.plugin.settings.vectorSettings.dbHasBeenInitialised =
+					false;
+			});
+
+		new ButtonComponent(containerEl)
+			.setButtonText("Initialise container")
+			.setTooltip("This will start embedding all your documents.")
+			.setDisabled(
+				!this.plugin.settings.vectorSettings.dbHasBeenInitialised
+			)
+			.onClick(async () => {
+				await this.plugin.vectorStore!.initialiseDb();
+				await this.plugin.markdownProcessor.addAllDocumentsToVectorStore();
+				this.plugin.settings.vectorSettings.dbHasBeenInitialised = true;
+			});
 	}
 
 	private addVectorSettings(containerEl: HTMLElement) {

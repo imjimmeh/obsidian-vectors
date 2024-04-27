@@ -13,6 +13,7 @@ import type { ParamsFromFString } from "@langchain/core/prompts";
 import { formatDocumentsAsString } from "langchain/util/document";
 
 import { Document } from "@langchain/core/documents";
+import type { AIMessage } from "./message";
 
 export default class LlmChat {
 	plugin: ObsidianVectorPlugin;
@@ -33,9 +34,8 @@ export default class LlmChat {
 			model: this.plugin.settings.llmSettings.model,
 		});
 
-		const retriever = this.plugin.vectorStore!._db.asRetriever(50);
+		const retriever = this.plugin.vectorStore!._db.asRetriever(20);
 
-		// subchain for generating an answer once we've done retrieval
 		const answerChain = this.prompt.pipe(this.llm).pipe(this.parser);
 
 		const map = RunnableMap.from({
@@ -43,7 +43,6 @@ export default class LlmChat {
 			docs: retriever,
 		});
 
-		// complete chain that calls the retriever -> formats docs to string -> runs answer subchain -> returns just the answer and retrieved docs.
 		const chain = map
 			.assign({ context: this.formatDocs })
 			.assign({ answer: answerChain })
@@ -52,19 +51,25 @@ export default class LlmChat {
 		this.chain = chain;
 	}
 
-	async sendMessage(message: string): Promise<string> {
-		console.log(`Sending message: "${message}"`);
+	async sendMessage(message: string): Promise<AIMessage> {
 		const result = await this.chain.invoke(message);
 
-		console.log("Received result:", result);
-		const sources = result.docs
+		const sources = this.getSourceDocumentPaths(result);
+
+		return {
+			sender: "AI",
+			message: result.answer,
+			sources,
+		};
+	}
+
+	private getSourceDocumentPaths(result: any) {
+		return result.docs
 			.map((doc: Document) => doc.metadata.filePath)
 			.filter(
 				(value: string, index: number, array: string[]) =>
 					array.indexOf(value) === index
 			);
-
-		return result.answer + "\n\n\nSource:\n" + sources.join("\n");
 	}
 
 	formatDocs(input: Record<string, any>): string {

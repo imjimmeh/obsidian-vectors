@@ -30,6 +30,8 @@ export default class ChatView extends ItemView {
 	}
 
 	async onClose() {
-		// Nothing to clean up.
+		if (!this.component) return;
+
+		this.component!.$destroy();
 	}
 }
