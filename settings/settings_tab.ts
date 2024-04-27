@@ -1,5 +1,6 @@
 import ObsidianVectorPlugin from "vector_plugin";
 import { App, PluginSettingTab, Setting } from "obsidian";
+import { DEFAULT_SETTINGS } from "./default";
 
 export default class VectorSettingsTab extends PluginSettingTab {
 	plugin: ObsidianVectorPlugin;
@@ -24,7 +25,7 @@ export default class VectorSettingsTab extends PluginSettingTab {
 			.setDesc("Base URL for LLM API")
 			.addText((text) =>
 				text
-					.setPlaceholder("http://localhost:11434")
+					.setPlaceholder(DEFAULT_SETTINGS.llmSettings.base_url)
 					.setValue(this.plugin.settings.llmSettings.base_url)
 					.onChange(async (value) => {
 						this.plugin.settings.llmSettings.base_url = value;
@@ -37,7 +38,7 @@ export default class VectorSettingsTab extends PluginSettingTab {
 			.setDesc("What model to use")
 			.addText((text) =>
 				text
-					.setPlaceholder("llama3")
+					.setPlaceholder(DEFAULT_SETTINGS.llmSettings.model)
 					.setValue(this.plugin.settings.llmSettings.model)
 					.onChange(async (value) => {
 						this.plugin.settings.llmSettings.model = value;
@@ -52,8 +53,8 @@ export default class VectorSettingsTab extends PluginSettingTab {
 			.setDesc("Base URL for Vector DB Store")
 			.addText((text) =>
 				text
-					.setPlaceholder("http://localhost:8000")
-					.setValue(this.plugin.settings.llmSettings.base_url)
+					.setPlaceholder(DEFAULT_SETTINGS.vectorSettings.base_url)
+					.setValue(this.plugin.settings.vectorSettings.base_url)
 					.onChange(async (value) => {
 						this.plugin.settings.vectorSettings.base_url = value;
 						await this.plugin.saveSettings();
