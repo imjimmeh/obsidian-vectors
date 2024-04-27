@@ -3,8 +3,8 @@ import { Vault } from "obsidian";
 import VectorDb from "./vector_store";
 import { Chroma } from "@langchain/community/vectorstores/chroma";
 import { Embeddings } from "@langchain/core/embeddings";
-import { VectorDbSettings } from "settings/types";
-import { ChromaClient, Collection, IEmbeddingFunction } from "chromadb";
+import type { VectorDbSettings } from "settings/types";
+import { ChromaClient, Collection, type IEmbeddingFunction } from "chromadb";
 
 export default class ChromaStore
 	extends VectorDb
@@ -58,14 +58,14 @@ export default class ChromaStore
 	}
 
 	deleteDocumentsForFile({ filePath }: { filePath: string }): Promise<void> {
-		const whereClaus = this.filterByFilePath(filePath);
-
-		return this._db.delete(this.filterByFilePath(filePath));
-	}
-
-	private filterByFilePath(filePath: string) {
-		return {
+		const result = this.collection.delete({
 			where: { filePath: filePath },
-		};
+		});
+
+		if (!result || result.length == 0) {
+			console.log(
+				`Attempted to delete embeddings for ${filePath} but result was ${result}`
+			);
+		}
 	}
 }

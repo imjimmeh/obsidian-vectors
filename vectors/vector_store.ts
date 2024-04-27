@@ -2,7 +2,7 @@ import { VectorStore } from "@langchain/core/vectorstores";
 import { Vault } from "obsidian";
 import { Document } from "@langchain/core/documents";
 import { Embeddings } from "@langchain/core/embeddings";
-import { VectorDbSettings } from "settings/types";
+import type { VectorDbSettings } from "settings/types";
 
 export default abstract class VectorDb {
 	_db: VectorStore;

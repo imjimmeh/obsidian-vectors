@@ -57,15 +57,18 @@ export default class ObsidianVectorPlugin extends Plugin {
 		);
 
 		this.registerEvent(
-			this.app.metadataCache.on("deleted", (file: TFile) =>
-				this.markdownProcessor.deleteFile(file.path)
-			)
+			this.app.metadataCache.on("deleted", async (file: TFile) => {
+				console.log("Deleting file", file);
+				await this.markdownProcessor.deleteFile(file.path);
+			})
 		);
 
 		this.registerEvent(
 			this.app.vault.on(
 				"rename",
 				async (file: TAbstractFile, oldPath: string) => {
+					console.log("renaming file from ", oldPath);
+					console.log("to new path", file);
 					await this.markdownProcessor.deleteFile(oldPath);
 					await this.markdownProcessor.addFile(file as TFile);
 				}
