@@ -1,5 +1,5 @@
 import { ObsidianVectorPluginSettings, VectorStore } from "settings/types";
-import { Plugin } from "obsidian";
+import { App, CachedMetadata, Plugin, PluginManifest, TFile } from "obsidian";
 import VectorSettingsTab from "settings/settings_tab";
 import { DEFAULT_SETTINGS } from "settings/default";
 import VectorDb from "vectors/vector_store";
@@ -10,7 +10,13 @@ import MarkdownFileProcessor from "files/markdown_file_processor";
 export default class ObsidianVectorPlugin extends Plugin {
 	settings: ObsidianVectorPluginSettings = DEFAULT_SETTINGS;
 	vectorStore: VectorDb;
-	markdownProcessor: MarkdownFileProcessor = new MarkdownFileProcessor();
+	markdownProcessor: MarkdownFileProcessor;
+
+	constructor(app: App, manifest: PluginManifest) {
+		super(app, manifest);
+
+		this.markdownProcessor = new MarkdownFileProcessor({ plugin: this });
+	}
 
 	async onload() {
 		await this.loadSettings();
@@ -21,11 +27,17 @@ export default class ObsidianVectorPlugin extends Plugin {
 			name: "Initialise Vector DB",
 			callback: async () => {
 				this.vectorStore.initialiseDb();
-				this.markdownProcessor.addAllDocumentsToVectorStore(this);
+				this.markdownProcessor.addAllDocumentsToVectorStore();
 			},
 		});
 
 		this.addSettingTab(new VectorSettingsTab(this.app, this));
+
+		this.registerEvent(
+			this.app.vault.on("modify", (file: TFile) =>
+				this.markdownProcessor.updateFile(file)
+			)
+		);
 	}
 
 	onunload() {}

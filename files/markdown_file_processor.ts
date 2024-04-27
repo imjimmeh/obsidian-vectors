@@ -11,24 +11,57 @@ export default class MarkdownFileProcessor {
 		chunkOverlap: 20,
 	});
 
-	async addAllDocumentsToVectorStore(plugin: ObsidianVectorPlugin) {
-		const files = plugin.app.vault.getMarkdownFiles();
+	updatedFiles: TFile[] = [];
+	initialisingCollection = false;
+
+	plugin: ObsidianVectorPlugin;
+
+	constructor({ plugin }: { plugin: ObsidianVectorPlugin }) {
+		this.plugin = plugin;
+	}
+
+	async addAllDocumentsToVectorStore() {
+		this.initialisingCollection = true;
+		const files = this.plugin.app.vault.getMarkdownFiles();
 
 		this.notifications.displayMessage("Processing files...");
 
-		for (const file of files) {
-			await this.addFile(plugin, file);
+		for (let x = 0; x < files.length; x++) {
+			const file = files[x];
+			await this.addFile(
+				file,
+				`Embedding documents.\n\nProcessing ${x}/${files.length}: ${file.name}`
+			);
 		}
 
 		this.notifications.hide();
+		this.initialisingCollection = false;
 	}
 
-	private async addFile(plugin: ObsidianVectorPlugin, file: TFile) {
+	async updateFile(file: TFile) {
+		//TODO: Don't do updates right away, as there'll be loads with repeated savings.
+		this.updatedFiles.push(file);
+
+		if (this.initialisingCollection) {
+			return;
+		}
+
+		const filesToUpdate = [...this.updatedFiles];
+
+		this.updatedFiles = [];
+
+		for (const file of filesToUpdate) {
+			this.addFile(file);
+		}
+	}
+
+	private async addFile(file: TFile, notificationMessage?: string) {
 		this.notifications.displayMessage(
-			`Embedding documents.\n\nProcessing ${file.name}`
+			notificationMessage ??
+				`Embedding documents.\n\Processing: ${file.name}`
 		);
 
-		const fileContents = await plugin.app.vault.cachedRead(file);
+		const fileContents = await this.plugin.app.vault.cachedRead(file);
 
 		const documents = await this._splitter.createDocuments(
 			[fileContents],
@@ -37,7 +70,7 @@ export default class MarkdownFileProcessor {
 
 		const ids = documents.map((_, index) => `${file.name}_${index}`);
 
-		await plugin.vectorStore.addDocuments({ documents, ids });
+		await this.plugin.vectorStore.addDocuments({ documents, ids });
 	}
 
 	private createMetadata(file: TFile): Record<string, any>[] | undefined {
