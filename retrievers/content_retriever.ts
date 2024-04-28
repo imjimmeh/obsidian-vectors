@@ -83,7 +83,7 @@ export default class TypedContentRetriever<
 
 		this.similarityScoreRetriever = new ScoreThresholdRetriever({
 			minSimilarityScore:
-				this.plugin.settings.querySettings.minimumSimilarityScore * 1.5,
+				this.plugin.settings.querySettings.minimumSimilarityScore,
 			maxK: 50, //TODO: Add to settings
 			kIncrement: 2, //TODO: Add to settings
 			vectorStore: vectorStore,
