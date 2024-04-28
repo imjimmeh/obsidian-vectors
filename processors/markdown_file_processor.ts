@@ -91,7 +91,7 @@ export default class MarkdownFileProcessor {
 			ids: ids,
 		});
 
-		console.log(`Embedded documents for ${file.name}`);
+		//console.log(`Embedded documents for ${file.name}`);
 	}
 
 	private createMetadata(
@@ -115,7 +115,7 @@ export default class MarkdownFileProcessor {
 		if (cachedMetadata.frontmatter?.fields) {
 			fileInfo = {
 				...fileInfo,
-				...cachedMetadata.frontmatter,
+				...cachedMetadata.frontmatter.fields,
 			};
 		}
 
@@ -130,7 +130,7 @@ export default class MarkdownFileProcessor {
 			fileInfo.tags = tags;
 		}
 
-		console.log(`Created fileinfo`, fileInfo);
+		//console.log(`Created fileinfo`, fileInfo);
 
 		return [fileInfo];
 	}

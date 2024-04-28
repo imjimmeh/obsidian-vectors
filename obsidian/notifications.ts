@@ -15,7 +15,7 @@ export default class Notifications {
 		}
 
 		if (this.logMessages) {
-			console.log(message);
+			//console.log(message);
 		}
 	}
 

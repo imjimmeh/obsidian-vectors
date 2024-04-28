@@ -122,7 +122,7 @@ export default class ObsidianVectorPlugin extends Plugin {
 	async loadSettings() {
 		const loadedData = await this.loadData();
 
-		console.log("Loaded settings ", loadedData);
+		//console.log("Loaded settings ", loadedData);
 		if (loadedData) {
 			this.settings = {
 				...this.settings,
@@ -130,7 +130,7 @@ export default class ObsidianVectorPlugin extends Plugin {
 			};
 		}
 
-		console.log("Settings", this.settings);
+		//console.log("Settings", this.settings);
 	}
 
 	async saveSettings() {
