@@ -19,8 +19,17 @@
 
 -   [ ] Agentness
 -   [ ] LLM can edit document
--   [ ] Improve retrieval
 -   [ ] Add memory
+
+### Retrieval
+
+-   [x] Add similarity score retrieval
+-   [x] Add multiquery retrieval
+-   [ ] Add self query retrieval
+-   [ ] Add multivector retrieval
+-   [ ] Add parent document retrieval
+
+_Note_: Need to play around with all of these once done. I think some combination of them will be extremely effective, but unsure what. Will add them all and play around.
 
 ### Vectors
 
@@ -49,6 +58,7 @@
 -   [ ] Add other docs
 -   [ ] Add logging
 -   [ ] Think of a better name...
+-   [ ] Use the Obsidian Tasks API to move embeddings (and whatever else is appropriate) to background thread
 
 #### LONG TERM
 

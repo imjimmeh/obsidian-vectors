@@ -11,4 +11,7 @@ export const DEFAULT_SETTINGS: ObsidianVectorPluginSettings = {
 		base_url: "http://localhost:8000",
 		dbHasBeenInitialised: false,
 	},
+	querySettings: {
+		minimumSimilarityScore: 0.2,
+	},
 };

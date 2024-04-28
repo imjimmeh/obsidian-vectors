@@ -1,6 +1,7 @@
 export interface ObsidianVectorPluginSettings {
 	llmSettings: LlmSettings;
 	vectorSettings: VectorDbSettings;
+	querySettings: QuerySettings;
 }
 
 export interface LlmSettings {
@@ -13,6 +14,10 @@ export interface VectorDbSettings {
 	store: VectorStore;
 	base_url: string;
 	dbHasBeenInitialised: boolean;
+}
+
+export interface QuerySettings {
+	minimumSimilarityScore: number;
 }
 
 export enum VectorStore {

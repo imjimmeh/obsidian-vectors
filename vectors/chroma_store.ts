@@ -31,7 +31,6 @@ export default class ChromaStore
 		this.collection = await this.client.getOrCreateCollection({
 			name: this._vault.getName(),
 			embeddingFunction: this,
-			metadata: { "hnsw:space": "cosine" },
 		});
 
 		this._db = new Chroma(this._embeddings, {
