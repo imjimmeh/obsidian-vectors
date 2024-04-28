@@ -24,10 +24,10 @@
 
 ### Vectors
 
--   [ ] Use tags as metadata somehow (and maybe backlinks?)
+-   [x] Use tags as metadata somehow (and maybe backlinks?)
 -   [ ] Embed other document types
--   [ ] Save tags as metadata
--   [ ] Save links as metadata
+-   [x] Save tags as metadata
+-   [x] Save links as metadata
 -   [ ] Save backlinks as metadata?
 
 ### Settings
@@ -44,12 +44,21 @@
 -   [ ] Add command to open chat window
 
 ### Other
-- [ ] Add read me
-- [ ] Add other docs
-- [ ] Add logging
 
-## 27/04/2024
+-   [ ] Add read me
+-   [ ] Add other docs
+-   [ ] Add logging
+-   [ ] Think of a better name...
+
+## Dev Log
+
+### 27/04/2024
 
 -   Made chat prettier. Could do with more work but good for now IMO.
 -   Instead of enter to send message, shift+enter was chosen.
 -   Added buttons in settings to initialise or delete Vector container
+
+### 28/04/2024
+
+-   Add frontmatter to embeddings
+-   Add document name as embedding header
