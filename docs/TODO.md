@@ -55,6 +55,7 @@ _Note_: Need to play around with all of these once done. I think some combinatio
 -   [x] Change icon on left bar for the chat open window
 -   [ ] Add embedding status to status bar
 -   [ ] Add command to open chat window
+-   [ ] Improve sources look on chat
 
 ### Other
 
