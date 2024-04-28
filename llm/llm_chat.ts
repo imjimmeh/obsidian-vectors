@@ -1,8 +1,6 @@
 import ObsidianVectorPlugin from "vector_plugin";
 import { ChatOllama } from "@langchain/community/chat_models/ollama";
 import { StringOutputParser } from "@langchain/core/output_parsers";
-import { ChatPromptTemplate } from "@langchain/core/prompts";
-import { Runnable, type RunnableConfig } from "@langchain/core/runnables";
 import type { AIMessage, MessageOptions } from "../chat/types";
 import TypedContentRetriever, {
 	ContentRetriever,
@@ -10,6 +8,7 @@ import TypedContentRetriever, {
 import type BaseChatChain from "./base_chat_chain";
 import RagChatChain from "./rag_chat_chain";
 import SimpleChatChain from "./simple_chat_chain";
+import { Component, MarkdownRenderer } from "obsidian";
 
 export default class LlmChat {
 	plugin: ObsidianVectorPlugin;

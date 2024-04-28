@@ -47,7 +47,7 @@ export default class ObsidianVectorPlugin extends Plugin {
 	private registerViews() {
 		this.registerView(
 			ChatViewType,
-			(leaf) => new ChatView(leaf, this.llmChat!)
+			(leaf) => new ChatView(this.app, leaf, this.llmChat!)
 		);
 	}
 

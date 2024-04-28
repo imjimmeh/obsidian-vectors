@@ -4,11 +4,13 @@
 	import ChatMessage from "./ChatMessage.svelte";
 	import AiMessagePlaceholder from "./AIMessagePlaceholder.svelte";
 	import UserInput from "./UserInput.svelte";
+	import ChatView from "./chat_view";
 
 	let messages: Message[] = [];
 	$: messages = [];
 
 	export let llmChat: LlmChat;
+	export let chatView: ChatView;
 
 	$: awaitingResponse = false;
 
@@ -40,7 +42,7 @@
 	<div id="container">
 		<div class="messages">
 			{#each messages as message}
-				<ChatMessage {message} />
+				<ChatMessage {message} {chatView} />
 			{/each}
 
 			{#if awaitingResponse}

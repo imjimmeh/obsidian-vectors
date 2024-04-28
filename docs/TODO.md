@@ -14,7 +14,7 @@
 -   [ ] User can click source to add to RAG
 -   [ ] Disable chat button whilst waiting for AI response
 -   [x] Filter docs by score
--   [ ] Format response messages
+-   [x] Format response messages
 
 ### LLM
 
@@ -57,6 +57,7 @@ _Note_: Need to play around with all of these once done. I think some combinatio
 -   [ ] Add embedding status to status bar
 -   [ ] Add command to open chat window
 -   [ ] Improve sources look on chat
+-   [ ] Improve messages look
 
 ### Other
 
@@ -90,3 +91,9 @@ _Note_: Need to play around with all of these once done. I think some combinatio
 -   Similarity score uses setting
 -   Improved settings tab slightly (i.e. added headers)
 -   Changed icon for ribbon + chat view
+-   AI "Thinking..." display whilst awaiting a response
+-   Disable RAG optiom
+-   Refactored `LlmChat` class a bit
+-   Refactored chat a bit; separated various components
+-   Messages can now be sent with options, to allow different chains to be used
+-   Render messages as HTML (assuming they're markdown)

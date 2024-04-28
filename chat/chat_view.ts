@@ -1,15 +1,23 @@
-import { ItemView, View, WorkspaceLeaf } from "obsidian";
+import {
+	App,
+	Component,
+	ItemView,
+	View,
+	WorkspaceLeaf,
+	MarkdownRenderer,
+} from "obsidian";
 import ChatComponent from "./ChatComponent.svelte";
 import type LlmChat from "../llm/llm_chat";
-
 export const ChatViewType = "ChatView;";
 
 export default class ChatView extends ItemView {
-	component: ChatComponent | null = null;
+	chatComponent: ChatComponent | null = null;
 	llmChat: LlmChat;
+	app: App;
 
-	constructor(leaf: WorkspaceLeaf, llmChat: LlmChat) {
+	constructor(app: App, leaf: WorkspaceLeaf, llmChat: LlmChat) {
 		super(leaf);
+		this.app = app;
 		this.llmChat = llmChat;
 	}
 
@@ -25,17 +33,28 @@ export default class ChatView extends ItemView {
 		return "message-circle";
 	}
 	async onOpen() {
-		this.component = new ChatComponent({
+		this.chatComponent = new ChatComponent({
 			target: this.contentEl,
 			props: {
 				llmChat: this.llmChat,
+				chatView: this,
 			},
 		});
 	}
 
 	async onClose() {
-		if (!this.component) return;
+		if (!this.chatComponent) return;
 
-		this.component!.$destroy();
+		this.chatComponent!.$destroy();
+	}
+
+	renderMessage(message: string, container: HTMLElement): Promise<void> {
+		return MarkdownRenderer.render(
+			this.app,
+			message,
+			container,
+			"/ai_message_temp.md",
+			this
+		);
 	}
 }
