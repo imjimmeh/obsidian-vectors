@@ -5,7 +5,7 @@
 -   [ ] Add ability to enable/disable document retrieval
 -   [x] Make chat prettier
 -   [x] Enter button to send message
--   [ ] Show "thinking" status whilst waiting for message
+-   [x] Show "thinking" status whilst waiting for message
 -   [ ] Clear chat option
 -   [ ] User can add only certain documents for RAG
 -   [ ] User can add full documents of retrieved sources for RAG

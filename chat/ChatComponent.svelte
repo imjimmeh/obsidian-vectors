@@ -1,11 +1,15 @@
 <script lang="ts">
 	import type LlmChat from "./llm_chat";
-	import type { Message, AIMessage } from "./message";
+	import type { Message } from "./types";
 	import ChatMessage from "./ChatMessage.svelte";
+	import AiMessagePlaceholder from "./AIMessagePlaceholder.svelte";
+
 	let messages: Message[] = [];
 	$: messages = [];
 
 	export let llmChat: LlmChat;
+
+	$: awaitingResponse = false;
 
 	const postMessage = async () => {
 		const message = `${userMessage}`;
@@ -13,9 +17,15 @@
 
 		addMessage({ sender: "User", message: message });
 
-		const response = await llmChat.sendMessage(message);
+		const responsePromise = llmChat.sendMessage(message);
+
+		awaitingResponse = true;
+
+		const response = await responsePromise;
 
 		addMessage(response);
+
+		awaitingResponse = false;
 	};
 
 	const addMessage = (message: Message) => {
@@ -38,6 +48,10 @@
 	{#each messages as message}
 		<ChatMessage {message} />
 	{/each}
+
+	{#if awaitingResponse}
+		<AiMessagePlaceholder />
+	{/if}
 </div>
 <div class="input-form">
 	<textarea
