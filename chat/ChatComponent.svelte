@@ -58,7 +58,7 @@
 
 <style>
 	.messages {
-		height: 60%;
+		height: 70%;
 		overflow-y: scroll;
 	}
 
