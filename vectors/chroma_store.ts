@@ -41,11 +41,7 @@ export default class ChromaStore
 	}
 
 	async deleteCollection(): Promise<void> {
-		if (this.collection) {
-			await this.collection.delete();
-		} else {
-			await this.client.deleteCollection({ name: this._vault.getName() });
-		}
+		await this.client.deleteCollection({ name: this._vault.getName() });
 	}
 
 	async generate(text: string[]): Promise<number[][]> {

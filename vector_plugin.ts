@@ -12,7 +12,7 @@ import { DEFAULT_SETTINGS } from "settings/default";
 import VectorDb from "vectors/vector_store";
 import ChromaStore from "vectors/chroma_store";
 import { OllamaEmbeddings } from "@langchain/community/embeddings/ollama";
-import MarkdownFileProcessor from "files/markdown_file_processor";
+import MarkdownFileProcessor from "processors/markdown_file_processor";
 import ChatView, { ChatViewType } from "chat/chat_view";
 import LlmChat from "chat/llm_chat";
 

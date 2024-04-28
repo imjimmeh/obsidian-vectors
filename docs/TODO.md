@@ -45,10 +45,16 @@
 
 ### Other
 
--   [ ] Add read me
+-   [x] Add read me
 -   [ ] Add other docs
 -   [ ] Add logging
 -   [ ] Think of a better name...
+
+#### LONG TERM
+
+-   [ ] Support other LLMs
+-   [ ] Support other vector databases
+-   [ ] Support other embeddings
 
 ## Dev Log
 
@@ -62,3 +68,4 @@
 
 -   Add frontmatter to embeddings
 -   Add document name as embedding header
+-   Similarity score + multi query retrieval added. Took a fair bit of tweaking but seems much better. Need to add settings.

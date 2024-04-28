@@ -42,7 +42,6 @@ export default class LlmChat {
 
 		const answerChain = this.prompt.pipe(this.llm).pipe(this.parser);
 
-
 		this.retriever = new ContentRetiever(
 			this.plugin.vectorStore!._db,
 			this
@@ -50,7 +49,13 @@ export default class LlmChat {
 
 		const map = RunnableMap.from({
 			question: new RunnablePassthrough<string>(),
-			docs: this.retriever,
+			docs: async (input: string) => {
+				const results = await this.retriever.invoke(input);
+
+				console.log(results);
+
+				return results;
+			},
 		});
 
 		const chain = map
@@ -60,7 +65,6 @@ export default class LlmChat {
 
 		this.chain = chain;
 	}
-
 
 	async sendMessage(message: string): Promise<AIMessage> {
 		const result = await this.chain.invoke(message);
