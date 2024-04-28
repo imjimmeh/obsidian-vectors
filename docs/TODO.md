@@ -15,6 +15,7 @@
 -   [ ] Disable chat button whilst waiting for AI response
 -   [x] Filter docs by score
 -   [x] Format response messages
+-   [ ] User can retry message response
 
 ### LLM
 

@@ -1,11 +1,5 @@
 import ObsidianVectorPlugin from "vector_plugin";
-import {
-	App,
-	ButtonComponent,
-	PluginSettingTab,
-	Setting,
-	TextComponent,
-} from "obsidian";
+import { App, ButtonComponent, PluginSettingTab, Setting } from "obsidian";
 import { DEFAULT_SETTINGS } from "./default";
 
 export default class VectorSettingsTab extends PluginSettingTab {
