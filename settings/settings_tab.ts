@@ -1,5 +1,11 @@
 import ObsidianVectorPlugin from "vector_plugin";
-import { App, ButtonComponent, PluginSettingTab, Setting } from "obsidian";
+import {
+	App,
+	ButtonComponent,
+	PluginSettingTab,
+	Setting,
+	TextComponent,
+} from "obsidian";
 import { DEFAULT_SETTINGS } from "./default";
 
 export default class VectorSettingsTab extends PluginSettingTab {
@@ -17,10 +23,13 @@ export default class VectorSettingsTab extends PluginSettingTab {
 
 		this.addLlmSettings(containerEl);
 		this.addVectorSettings(containerEl);
+		this.addRetrievalSettings(containerEl);
 	}
 
 	private addLlmSettings(containerEl: HTMLElement) {
-		new Setting(containerEl)
+		const div = createNewSection(containerEl, "LLM Settings");
+
+		new Setting(div)
 			.setName("LLM Base URL")
 			.setDesc("Base URL for LLM API")
 			.addText((text) =>
@@ -33,7 +42,7 @@ export default class VectorSettingsTab extends PluginSettingTab {
 					})
 			);
 
-		new Setting(containerEl)
+		new Setting(div)
 			.setName("LLM Model")
 			.setDesc("What model to use")
 			.addText((text) =>
@@ -46,7 +55,9 @@ export default class VectorSettingsTab extends PluginSettingTab {
 					})
 			);
 
-		new ButtonComponent(containerEl)
+		const actionsDiv = div.createDiv();
+
+		new ButtonComponent(actionsDiv)
 			.setButtonText("Delete container")
 			.setWarning()
 			.setTooltip("This will delete all vector settings!")
@@ -59,7 +70,7 @@ export default class VectorSettingsTab extends PluginSettingTab {
 					false;
 			});
 
-		new ButtonComponent(containerEl)
+		new ButtonComponent(actionsDiv)
 			.setButtonText("Initialise container")
 			.setTooltip("This will start embedding all your documents.")
 			.setDisabled(
@@ -73,7 +84,9 @@ export default class VectorSettingsTab extends PluginSettingTab {
 	}
 
 	private addVectorSettings(containerEl: HTMLElement) {
-		new Setting(containerEl)
+		const section = createNewSection(containerEl, "Vector Settings");
+
+		new Setting(section)
 			.setName("Vector DB Base URL")
 			.setDesc("Base URL for Vector DB Store")
 			.addText((text) =>
@@ -102,4 +115,32 @@ export default class VectorSettingsTab extends PluginSettingTab {
 			);
 			*/
 	}
+
+	private addRetrievalSettings(containerEl: HTMLElement) {
+		const div = createNewSection(containerEl, "Retrieval settings");
+
+		new Setting(div)
+			.setName("Minimum Similarity Score")
+			.setDesc("Minimum similarity score for retrieved documents")
+			.addSlider((number) =>
+				number
+					.setLimits(0, 1, 0.05)
+					.setDynamicTooltip()
+					.setValue(
+						DEFAULT_SETTINGS.querySettings.minimumSimilarityScore
+					)
+					.onChange(async (value) => {
+						this.plugin.settings.querySettings.minimumSimilarityScore =
+							value;
+						await this.plugin.saveSettings();
+					})
+			);
+	}
+}
+function createNewSection(containerEl: HTMLElement, header: string) {
+	const div = containerEl.createDiv();
+
+	div.createEl("h1", { text: header });
+
+	return div;
 }
