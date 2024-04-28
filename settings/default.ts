@@ -12,6 +12,6 @@ export const DEFAULT_SETTINGS: ObsidianVectorPluginSettings = {
 		dbHasBeenInitialised: false,
 	},
 	querySettings: {
-		minimumSimilarityScore: 0.2,
+		minimumSimilarityScore: 0.45,
 	},
 };

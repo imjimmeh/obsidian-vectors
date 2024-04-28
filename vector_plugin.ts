@@ -110,8 +110,13 @@ export default class ObsidianVectorPlugin extends Plugin {
 
 		console.log("Loaded settings ", loadedData);
 		if (loadedData) {
-			this.settings = loadedData;
+			this.settings = {
+				...this.settings,
+				...loadedData,
+			};
 		}
+
+		console.log("Settings", this.settings);
 	}
 
 	async saveSettings() {

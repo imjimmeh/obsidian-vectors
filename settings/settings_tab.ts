@@ -127,7 +127,8 @@ export default class VectorSettingsTab extends PluginSettingTab {
 					.setLimits(0, 1, 0.05)
 					.setDynamicTooltip()
 					.setValue(
-						DEFAULT_SETTINGS.querySettings.minimumSimilarityScore
+						this.plugin.settings.querySettings
+							.minimumSimilarityScore
 					)
 					.onChange(async (value) => {
 						this.plugin.settings.querySettings.minimumSimilarityScore =

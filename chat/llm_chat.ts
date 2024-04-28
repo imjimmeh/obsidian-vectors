@@ -44,7 +44,8 @@ export default class LlmChat {
 
 		this.retriever = new ContentRetiever(
 			this.plugin.vectorStore!._db,
-			this
+			this,
+			this.plugin
 		);
 
 		const map = RunnableMap.from({

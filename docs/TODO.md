@@ -44,7 +44,7 @@ _Note_: Need to play around with all of these once done. I think some combinatio
 -   [ ] Ability to cancel initial embedding
 -   [ ] Setting(s) to filter what documents can be embedded
 -   [ ] Setting for collection name
--   [ ] Setting to tweak min similarity score
+-   [x] Setting to tweak min similarity score
 
 ### UI
 
@@ -59,6 +59,7 @@ _Note_: Need to play around with all of these once done. I think some combinatio
 -   [ ] Add logging
 -   [ ] Think of a better name...
 -   [ ] Use the Obsidian Tasks API to move embeddings (and whatever else is appropriate) to background thread
+-   [ ] Use events system so that changed settings can be updated on various places (e.g. retriever similarity score)
 
 #### LONG TERM
 
@@ -79,3 +80,4 @@ _Note_: Need to play around with all of these once done. I think some combinatio
 -   Add frontmatter to embeddings
 -   Add document name as embedding header
 -   Similarity score + multi query retrieval added. Took a fair bit of tweaking but seems much better. Need to add settings.
+-   Similarity score uses setting
