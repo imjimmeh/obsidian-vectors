@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { AIMessage, Message } from "./message";
-
+	import MessageSources from "./MessageSources.svelte";
 	export let message: Message;
 
 	$: aiMessage = message.sender == "AI" ? (message as AIMessage) : null;
@@ -14,11 +14,7 @@
 	<span class="message-text">{message.message}</span>
 
 	{#if aiMessage}
-		<div class="sources">
-			{#each aiMessage.sources as source}
-				<span class="message-source">{source}</span>
-			{/each}
-		</div>
+		<MessageSources message={aiMessage} />
 	{/if}
 </div>
 
@@ -40,13 +36,5 @@
 	.user-message {
 		background-color: cornflowerblue;
 		margin-left: 20%;
-	}
-
-	.message-source {
-		font-size: smaller;
-		margin-right: 5px;
-		background-color: lightblue;
-		border-radius: 5px;
-		color: #222;
 	}
 </style>
