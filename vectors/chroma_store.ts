@@ -1,6 +1,6 @@
 import { Document } from "@langchain/core/documents";
 import { Vault } from "obsidian";
-import VectorDb from "./vector_store";
+import VectorDb from "./vector_db";
 import { Chroma } from "@langchain/community/vectorstores/chroma";
 import { Embeddings } from "@langchain/core/embeddings";
 import type { VectorDbSettings } from "settings/types";
@@ -52,7 +52,7 @@ export default class ChromaStore
 		ids,
 	}: {
 		documents: Document<Record<string, any>>[];
-		ids?: string[] | null;
+		ids?: string[] | undefined;
 	}): Promise<void | string[]> {
 		return this._db.addDocuments(documents, {
 			ids: ids,

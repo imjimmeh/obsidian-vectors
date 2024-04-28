@@ -38,6 +38,8 @@ _Note_: Need to play around with all of these once done. I think some combinatio
 -   [x] Save tags as metadata
 -   [x] Save links as metadata
 -   [ ] Save backlinks as metadata?
+-   [ ] Keep a record of when vectors were last updated, then update any files modified since then on open
+-   [ ] Keep a record of when each file was embedded, so that we can create embeddings for files that were missed (e.g. the application was shut down during initial embeddings before completion)
 
 ### Settings
 
@@ -45,6 +47,8 @@ _Note_: Need to play around with all of these once done. I think some combinatio
 -   [ ] Setting(s) to filter what documents can be embedded
 -   [ ] Setting for collection name
 -   [x] Setting to tweak min similarity score
+-   [ ] Prompts
+-   [ ] Move to a Svelte component
 
 ### UI
 

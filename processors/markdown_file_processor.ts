@@ -3,7 +3,8 @@ import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import ObsidianVectorPlugin from "vector_plugin";
 import Notifications from "../obsidian/notifications";
 
-//TODO: Make abstract class
+//TODO: Make abstract class?
+//TODO: Move embeddings logic elsewhere?
 //THINK: Should this be a child of the vector store, or something else?
 export default class MarkdownFileProcessor {
 	notifications = new Notifications();
@@ -111,10 +112,12 @@ export default class MarkdownFileProcessor {
 			return [fileInfo];
 		}
 
-		fileInfo = {
-			...fileInfo,
-			...cachedMetadata.frontmatter,
-		};
+		if (cachedMetadata.frontmatter?.fields) {
+			fileInfo = {
+				...fileInfo,
+				...cachedMetadata.frontmatter,
+			};
+		}
 
 		const links = cachedMetadata.links?.map((link) => link.link);
 		const tags = cachedMetadata.tags?.map((tag) => tag.tag);

@@ -9,13 +9,13 @@ import {
 } from "obsidian";
 import VectorSettingsTab from "settings/settings_tab";
 import { DEFAULT_SETTINGS } from "settings/default";
-import VectorDb from "vectors/vector_store";
+import VectorDb from "vectors/vector_db";
 import ChromaStore from "vectors/chroma_store";
 import { OllamaEmbeddings } from "@langchain/community/embeddings/ollama";
 import MarkdownFileProcessor from "processors/markdown_file_processor";
 import ChatView, { ChatViewType } from "chat/chat_view";
 import LlmChat from "chat/llm_chat";
-
+import { getIconIds } from "obsidian";
 export default class ObsidianVectorPlugin extends Plugin {
 	settings: ObsidianVectorPluginSettings = DEFAULT_SETTINGS;
 	vectorStore: VectorDb | null = null;
@@ -29,6 +29,9 @@ export default class ObsidianVectorPlugin extends Plugin {
 	}
 
 	async onload() {
+		const icons = getIconIds();
+
+		console.log(icons);
 		await this.loadSettings();
 		await this.initialiseStore();
 

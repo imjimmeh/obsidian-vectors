@@ -138,6 +138,7 @@ export default class VectorSettingsTab extends PluginSettingTab {
 			);
 	}
 }
+
 function createNewSection(containerEl: HTMLElement, header: string) {
 	const div = containerEl.createDiv();
 

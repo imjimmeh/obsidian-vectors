@@ -5,6 +5,7 @@ import LlmChat from "chat/llm_chat";
 import { VectorStore } from "@langchain/core/vectorstores";
 import { PromptTemplate } from "@langchain/core/prompts";
 import type ObsidianVectorPlugin from "vector_plugin";
+import type { DocumentInterface } from "@langchain/core/documents";
 
 const template = `You are an AI designed to help users answer queries.
 You have access to a vector database, which contains all of the user's notes.
@@ -52,20 +53,32 @@ Cool Development Project
 Query:
 {question}`;
 
-export default class ContentRetiever<TVectorStore extends VectorStore> {
+export abstract class ContentRetriever {
+	protected plugin: ObsidianVectorPlugin;
+	protected llm: LlmChat;
+	constructor(llm: LlmChat, plugin: ObsidianVectorPlugin) {
+		this.llm = llm;
+		this.plugin = plugin;
+	}
+
+	abstract invoke(
+		input: string
+	): Promise<DocumentInterface<Record<string, any[]>>[]>;
+}
+
+export default class TypedContentRetriever<
+	TVectorStore extends VectorStore
+> extends ContentRetriever {
 	//  private parentDocumentRetriever: ParentDocumentRetriever;
-	private vectorStore: TVectorStore;
 	private similarityScoreRetriever: ScoreThresholdRetriever<TVectorStore>;
 	private multiQueryRetriever: MultiQueryRetriever;
 
-	private plugin: ObsidianVectorPlugin;
 	constructor(
 		vectorStore: TVectorStore,
 		llm: LlmChat,
 		plugin: ObsidianVectorPlugin
 	) {
-		this.plugin = plugin;
-		this.vectorStore = vectorStore;
+		super(llm, plugin);
 		this.similarityScoreRetriever = new ScoreThresholdRetriever({
 			minSimilarityScore:
 				this.plugin.settings.querySettings.minimumSimilarityScore,

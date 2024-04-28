@@ -14,15 +14,18 @@ import { formatDocumentsAsString } from "langchain/util/document";
 
 import { Document } from "@langchain/core/documents";
 import type { AIMessage } from "./message";
-import ContentRetiever from "retrievers/content_retriever";
+import TypedContentRetriever, {
+	ContentRetriever,
+} from "retrievers/content_retriever";
 import type { Chroma } from "@langchain/community/vectorstores/chroma";
+import type { VectorStore } from "settings/types";
 
 const MinSimilarityScore = 0.65;
 
 export default class LlmChat {
 	plugin: ObsidianVectorPlugin;
 	llm: ChatOllama;
-	retriever: ContentRetiever<Chroma>;
+	retriever: ContentRetriever;
 
 	prompt = ChatPromptTemplate.fromTemplate(
 		"Using the context provided (if any), answer the question from the user.\n\nContext: {context}\n-------\n\nQuestion: {question}"
@@ -42,7 +45,7 @@ export default class LlmChat {
 
 		const answerChain = this.prompt.pipe(this.llm).pipe(this.parser);
 
-		this.retriever = new ContentRetiever(
+		this.retriever = new TypedContentRetriever(
 			this.plugin.vectorStore!._db,
 			this,
 			this.plugin
