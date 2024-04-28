@@ -19,6 +19,8 @@
 
 -   [ ] Agentness
 -   [ ] LLM can edit document
+-   [ ] Improve retrieval
+-   [ ] Add memory
 
 ### Vectors
 
@@ -40,6 +42,11 @@
 -   [ ] Change icon on left bar for the chat open window
 -   [ ] Add embedding status to status bar
 -   [ ] Add command to open chat window
+
+### Other
+- [ ] Add read me
+- [ ] Add other docs
+- [ ] Add logging
 
 ## 27/04/2024
 

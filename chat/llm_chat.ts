@@ -14,12 +14,15 @@ import { formatDocumentsAsString } from "langchain/util/document";
 
 import { Document } from "@langchain/core/documents";
 import type { AIMessage } from "./message";
+import ContentRetiever from "retrievers/content_retriever";
+import type { Chroma } from "@langchain/community/vectorstores/chroma";
 
 const MinSimilarityScore = 0.65;
 
 export default class LlmChat {
 	plugin: ObsidianVectorPlugin;
 	llm: ChatOllama;
+	retriever: ContentRetiever<Chroma>;
 
 	prompt = ChatPromptTemplate.fromTemplate(
 		"Using the context provided (if any), answer the question from the user.\n\nContext: {context}\n-------\n\nQuestion: {question}"
@@ -39,11 +42,15 @@ export default class LlmChat {
 
 		const answerChain = this.prompt.pipe(this.llm).pipe(this.parser);
 
+
+		this.retriever = new ContentRetiever(
+			this.plugin.vectorStore!._db,
+			this
+		);
+
 		const map = RunnableMap.from({
 			question: new RunnablePassthrough<string>(),
-			docs: async (input: string) => {
-				return await this.getDocsBySimilarity(input);
-			},
+			docs: this.retriever,
 		});
 
 		const chain = map
@@ -54,19 +61,6 @@ export default class LlmChat {
 		this.chain = chain;
 	}
 
-	private async getDocsBySimilarity(input: string) {
-		const results =
-			await this.plugin.vectorStore?._db.similaritySearchWithScore(
-				input,
-				10
-			);
-
-		const filtered = results!
-			.filter((result) => result[1] > MinSimilarityScore)
-			.map((result) => result[0]);
-
-		return filtered;
-	}
 
 	async sendMessage(message: string): Promise<AIMessage> {
 		const result = await this.chain.invoke(message);
