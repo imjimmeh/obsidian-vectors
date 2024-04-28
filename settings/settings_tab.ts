@@ -51,7 +51,7 @@ export default class VectorSettingsTab extends PluginSettingTab {
 			.setWarning()
 			.setTooltip("This will delete all vector settings!")
 			.setDisabled(
-				this.plugin.settings.vectorSettings.dbHasBeenInitialised
+				!this.plugin.settings.vectorSettings.dbHasBeenInitialised
 			)
 			.onClick(async () => {
 				await this.plugin!.vectorStore!.deleteCollection();
@@ -63,7 +63,7 @@ export default class VectorSettingsTab extends PluginSettingTab {
 			.setButtonText("Initialise container")
 			.setTooltip("This will start embedding all your documents.")
 			.setDisabled(
-				!this.plugin.settings.vectorSettings.dbHasBeenInitialised
+				this.plugin.settings.vectorSettings.dbHasBeenInitialised
 			)
 			.onClick(async () => {
 				await this.plugin.vectorStore!.initialiseDb();
