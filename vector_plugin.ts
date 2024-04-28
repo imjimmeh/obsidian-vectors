@@ -15,7 +15,7 @@ import { OllamaEmbeddings } from "@langchain/community/embeddings/ollama";
 import MarkdownFileProcessor from "processors/markdown_file_processor";
 import ChatView, { ChatViewType } from "chat/chat_view";
 import LlmChat from "chat/llm_chat";
-import { getIconIds } from "obsidian";
+
 export default class ObsidianVectorPlugin extends Plugin {
 	settings: ObsidianVectorPluginSettings = DEFAULT_SETTINGS;
 	vectorStore: VectorDb | null = null;
@@ -29,39 +29,56 @@ export default class ObsidianVectorPlugin extends Plugin {
 	}
 
 	async onload() {
-		const icons = getIconIds();
-
-		console.log(icons);
 		await this.loadSettings();
 		await this.initialiseStore();
 
 		this.llmChat = new LlmChat(this);
+		this.registerViews();
+
+		this.registerCommands();
+
+		this.addSettingTab(new VectorSettingsTab(this.app, this));
+
+		this.registerEvents();
+
+		this.addRibbonIcons();
+	}
+
+	private registerViews() {
 		this.registerView(
 			ChatViewType,
 			(leaf) => new ChatView(leaf, this.llmChat!)
 		);
+	}
 
-		// This adds an editor command that can perform some operation on the current editor instance
+	private addRibbonIcons() {
+		this.addRibbonIcon("message-circle", "Open AI chat", async () => {
+			await this.openChatView();
+		});
+	}
+
+	private registerCommands() {
 		this.addCommand({
 			id: "initialise-vector-db",
 			name: "Initialise Vector DB",
 			callback: async () => {
-				this.vectorStore!.initialiseDb();
-				this.markdownProcessor.addAllDocumentsToVectorStore();
+				await this.vectorStore!.initialiseDb();
+				await this.markdownProcessor.addAllDocumentsToVectorStore();
 			},
 		});
+	}
 
-		this.addSettingTab(new VectorSettingsTab(this.app, this));
-
+	private registerEvents() {
 		this.registerEvent(
-			this.app.metadataCache.on("changed", (file: TFile) =>
-				this.markdownProcessor.updateFile(file)
+			this.app.metadataCache.on(
+				"changed",
+				async (file: TFile) =>
+					await this.markdownProcessor.updateFile(file)
 			)
 		);
 
 		this.registerEvent(
 			this.app.metadataCache.on("deleted", async (file: TFile) => {
-				console.log("Deleting file", file);
 				await this.markdownProcessor.deleteFile(file.path);
 			})
 		);
@@ -70,22 +87,16 @@ export default class ObsidianVectorPlugin extends Plugin {
 			this.app.vault.on(
 				"rename",
 				async (file: TAbstractFile, oldPath: string) => {
-					console.log("renaming file from ", oldPath);
-					console.log("to new path", file);
 					await this.markdownProcessor.deleteFile(oldPath);
 					await this.markdownProcessor.addFile(file as TFile);
 				}
 			)
 		);
-
-		this.addRibbonIcon("dice", "Activate view", () => {
-			this.activateView();
-		});
 	}
 
 	onunload() {}
 
-	async activateView() {
+	async openChatView() {
 		const { workspace } = this.app;
 
 		let leaf: WorkspaceLeaf | null = null;

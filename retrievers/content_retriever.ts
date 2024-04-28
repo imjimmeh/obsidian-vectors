@@ -79,11 +79,12 @@ export default class TypedContentRetriever<
 		plugin: ObsidianVectorPlugin
 	) {
 		super(llm, plugin);
+
 		this.similarityScoreRetriever = new ScoreThresholdRetriever({
 			minSimilarityScore:
 				this.plugin.settings.querySettings.minimumSimilarityScore,
-			maxK: 100,
-			kIncrement: 2,
+			maxK: 100, //TODO: Add to settings
+			kIncrement: 2, //TODO: Add to settings
 			vectorStore: vectorStore,
 		});
 
@@ -94,7 +95,7 @@ export default class TypedContentRetriever<
 			retriever: this.similarityScoreRetriever,
 			verbose: true,
 			prompt: promptTemplate,
-			queryCount: 5,
+			queryCount: 5, //TODO: Add to settings
 		});
 	}
 
