@@ -52,7 +52,7 @@ _Note_: Need to play around with all of these once done. I think some combinatio
 
 ### UI
 
--   [ ] Change icon on left bar for the chat open window
+-   [x] Change icon on left bar for the chat open window
 -   [ ] Add embedding status to status bar
 -   [ ] Add command to open chat window
 
@@ -85,3 +85,5 @@ _Note_: Need to play around with all of these once done. I think some combinatio
 -   Add document name as embedding header
 -   Similarity score + multi query retrieval added. Took a fair bit of tweaking but seems much better. Need to add settings.
 -   Similarity score uses setting
+-   Improved settings tab slightly (i.e. added headers)
+-   Changed icon for ribbon + chat view

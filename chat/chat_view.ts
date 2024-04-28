@@ -3,6 +3,7 @@ import ChatComponent from "./ChatComponent.svelte";
 import type LlmChat from "./llm_chat";
 
 export const ChatViewType = "ChatView;";
+
 export default class ChatView extends ItemView {
 	component: ChatComponent | null = null;
 	llmChat: LlmChat;
@@ -17,9 +18,12 @@ export default class ChatView extends ItemView {
 	}
 
 	getDisplayText(): string {
-		return "Testing";
+		return "AI Chat";
 	}
 
+	getIcon(): string {
+		return "message-circle";
+	}
 	async onOpen() {
 		this.component = new ChatComponent({
 			target: this.contentEl,
