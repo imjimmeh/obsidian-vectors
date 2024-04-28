@@ -14,7 +14,7 @@ import ChromaStore from "vectors/chroma_store";
 import { OllamaEmbeddings } from "@langchain/community/embeddings/ollama";
 import MarkdownFileProcessor from "processors/markdown_file_processor";
 import ChatView, { ChatViewType } from "chat/chat_view";
-import LlmChat from "chat/llm_chat";
+import LlmChat from "llm/llm_chat";
 
 export default class ObsidianVectorPlugin extends Plugin {
 	settings: ObsidianVectorPluginSettings = DEFAULT_SETTINGS;

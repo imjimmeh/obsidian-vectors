@@ -1,8 +1,9 @@
 <script lang="ts">
-	import type LlmChat from "./llm_chat";
-	import type { Message } from "./types";
+	import type LlmChat from "../llm/llm_chat";
+	import type { Message, MessageOptions } from "./types";
 	import ChatMessage from "./ChatMessage.svelte";
 	import AiMessagePlaceholder from "./AIMessagePlaceholder.svelte";
+	import UserInput from "./UserInput.svelte";
 
 	let messages: Message[] = [];
 	$: messages = [];
@@ -11,13 +12,13 @@
 
 	$: awaitingResponse = false;
 
-	const postMessage = async () => {
-		const message = `${userMessage}`;
-		userMessage = "";
+	const sendMessage = async (
+		userMessage: string,
+		options: MessageOptions,
+	) => {
+		addMessage({ sender: "User", message: userMessage });
 
-		addMessage({ sender: "User", message: message });
-
-		const responsePromise = llmChat.sendMessage(message);
+		const responsePromise = llmChat.sendMessage(userMessage, options);
 
 		awaitingResponse = true;
 
@@ -31,64 +32,47 @@
 	const addMessage = (message: Message) => {
 		messages = [...messages, message];
 	};
-
-	const onTextAreaKeyPress = async (event: KeyboardEvent) => {
-		//Send message on shift + enter press
-		if (event.code == "Enter" && event.shiftKey) {
-			await postMessage();
-		}
-	};
-
-	let userMessage: string = "";
 </script>
 
-<h2>Chat</h2>
+<div id="ai-chat-container">
+	<h2>Chat</h2>
 
-<div class="messages">
-	{#each messages as message}
-		<ChatMessage {message} />
-	{/each}
+	<div id="container">
+		<div class="messages">
+			{#each messages as message}
+				<ChatMessage {message} />
+			{/each}
 
-	{#if awaitingResponse}
-		<AiMessagePlaceholder />
-	{/if}
-</div>
-<div class="input-form">
-	<textarea
-		class="message-box"
-		bind:value={userMessage}
-		on:keypress={onTextAreaKeyPress}
-	/>
-	<div id="btn-container">
-		<button on:click={postMessage} id="send-message-btn">Send</button>
+			{#if awaitingResponse}
+				<AiMessagePlaceholder />
+			{/if}
+		</div>
+
+		<div id="input">
+			<UserInput {sendMessage} />
+		</div>
 	</div>
 </div>
 
 <style>
-	div.messages {
-		height: 80%;
+	.messages {
+		height: 60%;
 		overflow-y: scroll;
 	}
 
-	div.input-form {
-		height: 20%;
+	#ai-chat-container {
+		height: 95%;
+	}
+
+	#container {
+		height: 100%;
 		display: flex;
 		flex-direction: column;
+		justify-content: space-between;
 	}
 
-	.message-box {
-		width: 100%;
-		resize: none;
-		height: 80%;
-	}
-
-	#btn-container {
-		margin-top: 5px;
-		display: flex;
-		justify-content: end;
-	}
-
-	#send-message-btn {
-		width: 50%;
+	#input {
+		height: 30%;
+		margin-bottom: 10px;
 	}
 </style>

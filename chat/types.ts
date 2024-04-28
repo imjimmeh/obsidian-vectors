@@ -5,7 +5,11 @@ export interface Message {
 
 export interface AIMessage extends Message {
 	sender: "AI";
-	sources: string[];
+	sources?: string[];
 }
 
 export type MessageSender = "AI" | "User";
+
+export type MessageOptions = {
+	useRag: boolean;
+};

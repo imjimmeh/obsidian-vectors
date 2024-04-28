@@ -1,6 +1,6 @@
 import { ItemView, View, WorkspaceLeaf } from "obsidian";
 import ChatComponent from "./ChatComponent.svelte";
-import type LlmChat from "./llm_chat";
+import type LlmChat from "../llm/llm_chat";
 
 export const ChatViewType = "ChatView;";
 

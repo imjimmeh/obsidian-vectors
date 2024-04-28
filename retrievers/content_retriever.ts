@@ -1,7 +1,7 @@
 import { ParentDocumentRetriever } from "langchain/retrievers/parent_document";
 import { MultiQueryRetriever } from "langchain/retrievers/multi_query";
 import { ScoreThresholdRetriever } from "langchain/retrievers/score_threshold";
-import LlmChat from "chat/llm_chat";
+import LlmChat from "llm/llm_chat";
 import { VectorStore } from "@langchain/core/vectorstores";
 import { PromptTemplate } from "@langchain/core/prompts";
 import type ObsidianVectorPlugin from "vector_plugin";

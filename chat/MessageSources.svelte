@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { AIMessage } from "./message";
+	import type { AIMessage } from "./types";
 
 	export let message: AIMessage;
 

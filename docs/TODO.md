@@ -2,7 +2,7 @@
 
 ### Chat
 
--   [ ] Add ability to enable/disable document retrieval
+-   [x] Add ability to enable/disable document retrieval
 -   [x] Make chat prettier
 -   [x] Enter button to send message
 -   [x] Show "thinking" status whilst waiting for message
@@ -14,6 +14,7 @@
 -   [ ] User can click source to add to RAG
 -   [ ] Disable chat button whilst waiting for AI response
 -   [x] Filter docs by score
+-   [ ] Format response messages
 
 ### LLM
 
@@ -65,6 +66,7 @@ _Note_: Need to play around with all of these once done. I think some combinatio
 -   [ ] Think of a better name...
 -   [ ] Use the Obsidian Tasks API to move embeddings (and whatever else is appropriate) to background thread
 -   [ ] Use events system so that changed settings can be updated on various places (e.g. retriever similarity score)
+-   [ ] Error handling
 
 #### LONG TERM
 
