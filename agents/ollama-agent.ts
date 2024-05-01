@@ -8,9 +8,14 @@ import { ChatPromptTemplate, MessagesPlaceholder } from "@langchain/core/prompts
 import OllamaAgentLlm from "./ollama-agent-llm";
 import { WebBrowser } from "./webbrowser";
 import { RunnableWithMessageHistory } from "@langchain/core/runnables";
+import { RunnableSequence } from "@langchain/core/runnables";
+
+import { formatToOpenAIFunctionMessages } from "langchain/agents/format_scratchpad";
+import { OpenAIFunctionsAgentOutputParser } from "langchain/agents/openai/output_parser";
+import { BaseMessage } from "@langchain/core/messages";
 
 const ollama = new OllamaAgentLlm({
-	model: "openchat",
+	model: "llama3",
 	baseUrl: "http://192.168.1.252:11434",
 });
 
@@ -54,14 +59,30 @@ You MUST follow these instructions:
 3. You will receive a response from the user with the result of the tool.
 4. If there is no tool that can help, and you do not know the answer, respond with an empty JSON.
 5. Do not add any additional notes or explanations to your response.
-6. Once finished, answer the user's query.`;
+6. Once finished, respond with the answer to the user's query and TERMINATE.`;
 
+const chatHistory: BaseMessage[] = [];
+
+const MEMORY_KEY = "chat_history";
 const chatPrompt = ChatPromptTemplate.fromMessages([
 	["system", prompt],
-	new MessagesPlaceholder("chat_history"),
+	new MessagesPlaceholder(MEMORY_KEY),
 	["user", "{input}"],
 	["ai", "{agent_scratchpad}"]
 ]);
+
+const agentWithMemory = RunnableSequence.from([
+	{
+	  input: (i) => i.input,
+	  agent_scratchpad: (i) => formatToOpenAIFunctionMessages(i.steps),
+	  chat_history: (i) => i.chat_history,
+	  tools: (i) => i.tools,
+	  tools_schema: (i) => i.tools_schema
+	},
+	chatPrompt,
+	ollama,
+	new OpenAIFunctionsAgentOutputParser(),
+  ]);
 
 	const agent = await createOpenAIFunctionsAgent({
 		llm: ollama,
@@ -70,7 +91,7 @@ const chatPrompt = ChatPromptTemplate.fromMessages([
 	});
 
 	const agentExecutor = new AgentExecutor({
-		agent,
+		agent: agentWithMemory,
 		tools,
 		verbose: true
 	});
@@ -78,7 +99,8 @@ const chatPrompt = ChatPromptTemplate.fromMessages([
 	const result = await agentExecutor.invoke({
 		tools: toolsJson.map(tool => JSON.stringify(tool)).join("\n"),
 		input: "What is the website https://and.digital about?",
-		tools_schema: toolsSchema
+		tools_schema: toolsSchema,
+		chat_history: chatHistory
 	});
 
 	console.log(result);

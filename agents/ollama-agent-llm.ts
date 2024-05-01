@@ -38,6 +38,8 @@ export default class OllamaAgentLlm extends OllamaFunctions {
 		  options,
 		  runManager
 		);
+
+		console.log('inner chat result', chatResult, chatResult?.generations[0].message?.content, chatResult.llmOutput);
 		const chatGenerationContent = chatResult.generations[0].message.content;
 		if (typeof chatGenerationContent !== "string") {
 		  throw new Error("OllamaFunctions does not support non-string output.");
@@ -46,6 +48,7 @@ export default class OllamaAgentLlm extends OllamaFunctions {
 		try {
 		  parsedChatResult = JSON.parse(chatGenerationContent);
 		} catch (e) {
+			console.log('nonJSON response', e);
 		  return {
 			generations: [
 			  {
