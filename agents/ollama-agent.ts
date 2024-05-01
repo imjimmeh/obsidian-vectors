@@ -1,23 +1,16 @@
 import { OllamaEmbeddings } from "@langchain/community/embeddings/ollama";
-import { OllamaFunctions } from "langchain/experimental/chat_models/ollama_functions";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
-import { z } from "zod";
-import { OpenAI } from "@langchain/openai";
-import { RunnableSequence } from "@langchain/core/runnables";
-import { StructuredOutputParser } from "langchain/output_parsers";
-import { PromptTemplate } from "@langchain/core/prompts";
-import { WebBrowser } from "langchain/tools/webbrowser";
 import {
 	AgentExecutor,
 	createOpenAIFunctionsAgent,
-	createOpenAIToolsAgent,
 } from "langchain/agents";
-import { pull } from "langchain/hub";
-import { ChatOpenAI } from "@langchain/openai";
-import type { ChatPromptTemplate } from "@langchain/core/prompts";
+import { ChatPromptTemplate, MessagesPlaceholder } from "@langchain/core/prompts";
+import OllamaAgentLlm from "./ollama-agent-llm";
+import { WebBrowser } from "./webbrowser";
+import { RunnableWithMessageHistory } from "@langchain/core/runnables";
 
-const ollama = new OllamaFunctions({
-	model: "llama3",
+const ollama = new OllamaAgentLlm({
+	model: "openchat",
 	baseUrl: "http://192.168.1.252:11434",
 });
 
@@ -35,30 +28,58 @@ const tools = [
 ];
 
 const toolsJson = tools.map((tool) =>
-	StructuredOutputParser.fromZodSchema(tool.schema)
+({
+	name: tool.name,
+	description: tool.description,
+	schema: tool.schema
+})
 );
 
+const toolsSchema = `{
+	"tools": {
+		 "tool": "<name of the selected tool>",
+		 "tool_input": <parameters for the selected tool, matching the tool's JSON schema
+	}
+ }`;
+
 export const runAgent = async () => {
-	const prompt = await pull<ChatPromptTemplate>(
-		"hwchase17/openai-tools-agent"
-	);
+	const prompt = `
+You have access to the following tools:
+{tools}
+
+You MUST follow these instructions:
+1. You can select up to one tool at a time to respond to the user's query
+2. If you want to use a tool you must respond in the JSON format matching the following schema:
+{tools_schema}
+3. You will receive a response from the user with the result of the tool.
+4. If there is no tool that can help, and you do not know the answer, respond with an empty JSON.
+5. Do not add any additional notes or explanations to your response.
+6. Once finished, answer the user's query.`;
+
+const chatPrompt = ChatPromptTemplate.fromMessages([
+	["system", prompt],
+	new MessagesPlaceholder("chat_history"),
+	["user", "{input}"],
+	["ai", "{agent_scratchpad}"]
+]);
 
 	const agent = await createOpenAIFunctionsAgent({
 		llm: ollama,
 		tools: tools,
-		prompt: prompt,
+		prompt: chatPrompt,
 	});
 
 	const agentExecutor = new AgentExecutor({
 		agent,
 		tools,
+		verbose: true
 	});
 
 	const result = await agentExecutor.invoke({
+		tools: toolsJson.map(tool => JSON.stringify(tool)).join("\n"),
 		input: "What is the website https://and.digital about?",
+		tools_schema: toolsSchema
 	});
 
 	console.log(result);
 };
-
-runAgent().then(() => console.log("done"));
