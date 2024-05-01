@@ -1,3 +1,5 @@
 import ObsidianVectorPlugin from "vector_plugin";
 
-export default ObsidianVectorPlugin;
+import { runAgent } from "agents/ollama-agent";
+
+runAgent().then(() => console.log("done!"));

@@ -28,6 +28,8 @@
 	"dependencies": {
 		"@lancedb/vectordb-win32-x64-msvc": "^0.4.16",
 		"@langchain/community": "^0.0.52",
+		"axios": "^1.6.8",
+		"cheerio": "^1.0.0-rc.12",
 		"chromadb": "^1.8.1",
 		"cohere-ai": "^7.9.5",
 		"faiss-node": "^0.5.1",
