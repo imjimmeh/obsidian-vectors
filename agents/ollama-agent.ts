@@ -6,16 +6,17 @@ import {
 } from "langchain/agents";
 import { ChatPromptTemplate, MessagesPlaceholder } from "@langchain/core/prompts";
 import OllamaAgentLlm from "./ollama-agent-llm";
-import { WebBrowser } from "./webbrowser";
-import { RunnableWithMessageHistory } from "@langchain/core/runnables";
+import { createWebBrowser } from "./webbrowser";
 import { RunnableSequence } from "@langchain/core/runnables";
 
 import { formatToOpenAIFunctionMessages } from "langchain/agents/format_scratchpad";
 import { OpenAIFunctionsAgentOutputParser } from "langchain/agents/openai/output_parser";
 import { BaseMessage } from "@langchain/core/messages";
 
-const ollama = new OllamaAgentLlm({
-	model: "llama3",
+import { zodToJsonSchema } from "zod-to-json-schema";
+
+let ollama = new OllamaAgentLlm({
+	model: "openchat",
 	baseUrl: "http://192.168.1.252:11434",
 });
 
@@ -24,21 +25,18 @@ const textSplitter = RecursiveCharacterTextSplitter.fromLanguage("html", {
 	chunkOverlap: 20,
 });
 
-const tools = [
-	new WebBrowser({
+const tools  = [
+	createWebBrowser({
 		model: ollama,
 		embeddings: new OllamaEmbeddings(),
 		textSplitter: textSplitter,
-	}),
+	})
 ];
 
-const toolsJson = tools.map((tool) =>
-({
+const toolsJson = tools.map((tool) => ({
 	name: tool.name,
-	description: tool.description,
-	schema: tool.schema
-})
-);
+	description : tool.description, 
+	arguments: zodToJsonSchema(tool.schema)}));
 
 const toolsSchema = `{
 	"tools": {
@@ -71,6 +69,8 @@ const chatPrompt = ChatPromptTemplate.fromMessages([
 	["ai", "{agent_scratchpad}"]
 ]);
 
+const withTools = ollama.bindTools!(tools) as OllamaAgentLlm;
+
 const agentWithMemory = RunnableSequence.from([
 	{
 	  input: (i) => i.input,
@@ -80,15 +80,9 @@ const agentWithMemory = RunnableSequence.from([
 	  tools_schema: (i) => i.tools_schema
 	},
 	chatPrompt,
-	ollama,
+	withTools,
 	new OpenAIFunctionsAgentOutputParser(),
   ]);
-
-	const agent = await createOpenAIFunctionsAgent({
-		llm: ollama,
-		tools: tools,
-		prompt: chatPrompt,
-	});
 
 	const agentExecutor = new AgentExecutor({
 		agent: agentWithMemory,
@@ -98,7 +92,7 @@ const agentWithMemory = RunnableSequence.from([
 
 	const result = await agentExecutor.invoke({
 		tools: toolsJson.map(tool => JSON.stringify(tool)).join("\n"),
-		input: "What is the website https://and.digital about?",
+		input: "What is the website https://martynharris8.com about?",
 		tools_schema: toolsSchema,
 		chat_history: chatHistory
 	});

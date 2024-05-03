@@ -21,6 +21,8 @@ import {
     type BaseLangChainParams,
   } from "@langchain/core/language_models/base";
 export interface ToolParams extends BaseLangChainParams {}
+import { z } from "zod";
+import { DynamicTool, DynamicStructuredTool } from "@langchain/core/tools";
 
 export const parseInputs = (inputs: string): [string, string] => {
   const [baseUrl, task] = inputs.split(",").map((input) => {
@@ -174,13 +176,13 @@ export interface WebBrowserArgs extends ToolParams {
  * const result = await browser.invoke("https:exampleurl.com");
  * ```
  */
-export class WebBrowser extends Tool {
+export class WebBrowser {
   static lc_name() {
     return "WebBrowser";
   }
 
   get lc_namespace() {
-    return [...super.lc_namespace, "webbrowser"];
+    return ["webbrowser"];
   }
 
   private model: BaseLanguageModelInterface;
@@ -197,8 +199,6 @@ export class WebBrowser extends Tool {
     embeddings,
     textSplitter,
   }: WebBrowserArgs) {
-    super(...arguments);
-
     this.model = model;
     this.embeddings = embeddings;
     this.headers = headers ?? DEFAULT_HEADERS;
@@ -211,14 +211,13 @@ export class WebBrowser extends Tool {
   }
 
   /** @ignore */
-  async _call(inputs: string, runManager?: CallbackManagerForToolRun) {
-    const [baseUrl, task] = parseInputs(inputs);
+  async _call(url: string, task?: string, runManager?: CallbackManagerForToolRun) {
     const doSummary = !task;
 
     let text;
     try {
-      const html = await getHtml(baseUrl, this.headers);
-      text = getText(html, baseUrl, doSummary);
+      const html = await getHtml(url, this.headers);
+      text = getText(html, url, doSummary);
     } catch (e) {
       if (e) {
         return e.toString();
@@ -266,5 +265,27 @@ export class WebBrowser extends Tool {
 
   name = "web-browser";
 
-  description = `useful for when you need to find something on or summarize a webpage. input should be a comma separated list of "ONE valid http URL including protocol","what you want to find on the page or empty string for a summary".`;
+  description = `useful for when you need to find something on or summarize a webpage.`;
+}
+
+export const createWebBrowser = ({    model,
+  headers,
+  embeddings,
+  textSplitter,
+}: WebBrowserArgs) => {
+  const browser = new WebBrowser({ model, headers, embeddings, textSplitter });
+
+  const webBrowserStructuredTool = new DynamicStructuredTool({
+    name: "web-browser",
+    description: "navigates to a URL and retrieves a summary or data",
+    schema: z.object({
+      url: z.string().describe("The URL to navigate to"),
+      task: z.string().optional().describe("What to retrieve from the URL, e.g. summary"),
+    }),
+    func: async({ url, task }) => {
+      return browser._call(url, task);
+    }
+  });
+
+  return webBrowserStructuredTool
 }

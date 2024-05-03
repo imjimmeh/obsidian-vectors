@@ -1,18 +1,44 @@
-import { OllamaFunctions } from "langchain/experimental/chat_models/ollama_functions";
+import { OllamaFunctions, type OllamaFunctionsInput } from "langchain/experimental/chat_models/ollama_functions";
 import { ChatOllama } from "@langchain/community/chat_models/ollama";
-import { BaseMessage } from "@langchain/core/messages";
-import type { OllamaInput, OllamaMessage } from "@langchain/community/dist/utils/ollama";
+import { BaseMessage, AIMessageChunk, ToolMessage } from "@langchain/core/messages";
+import type { OllamaCallOptions, OllamaInput, OllamaMessage } from "@langchain/community/dist/utils/ollama";
 import type { CallbackManagerForLLMRun } from "@langchain/core/callbacks/manager";
 import type { ChatResult } from "@langchain/core/outputs";
 import { SystemMessagePromptTemplate } from "@langchain/core/prompts";
 import { AIMessage } from "@langchain/core/messages";
+import { type StructuredToolInterface } from "@langchain/core/tools";
+import {
+	type RunnableInterface,
+  } from "@langchain/core/runnables";
+  import type {
+	BaseLanguageModelInput,
+} from "@langchain/core/language_models/base";
+import { convertToOpenAITool } from "@langchain/core/utils/function_calling";
 
 export default class OllamaAgentLlm extends OllamaFunctions {
-	constructor(fields: OllamaInput){
+
+	constructor(fields: OllamaFunctionsInput){
 		super(fields);
 		this.llm = new OllamaOverride(fields);
 	}
 	
+	override bindTools(
+		tools: (Record<string, unknown> | StructuredToolInterface)[],
+		kwargs?: Partial<OllamaCallOptions>
+	  ): RunnableInterface<BaseLanguageModelInput, AIMessageChunk, OllamaCallOptions> {
+		const mapped = tools.map(convertToOpenAITool);
+
+		console.log('existing functions', (this as any).functions);
+		const bound = this.bind({
+		  tools: mapped,
+		  functions: mapped.map(f => f.function),
+		  ...kwargs,
+		} as Partial<OllamaCallOptions>);
+
+		return bound;
+	  }
+
+	  
 	override async _generate(messages: BaseMessage[], options: this["ParsedCallOptions"], runManager?: CallbackManagerForLLMRun | undefined): Promise<ChatResult> {
 		let functions = options.functions ?? [];
 		if (options.function_call !== undefined) {
@@ -30,25 +56,27 @@ export default class OllamaAgentLlm extends OllamaFunctions {
 		const systemPromptTemplate = SystemMessagePromptTemplate.fromTemplate(
 		  this.toolSystemPromptTemplate
 		);
+
 		const systemMessage = await systemPromptTemplate.format({
 		  tools: JSON.stringify(functions, null, 2),
 		});
+
 		const chatResult = await this.llm._generate(
 		  [systemMessage, ...messages],
 		  options,
 		  runManager
 		);
 
-		console.log('inner chat result', chatResult, chatResult?.generations[0].message?.content, chatResult.llmOutput);
 		const chatGenerationContent = chatResult.generations[0].message.content;
 		if (typeof chatGenerationContent !== "string") {
 		  throw new Error("OllamaFunctions does not support non-string output.");
 		}
 		let parsedChatResult;
+		console.log('response', chatResult.generations[0].message.content);
 		try {
 		  parsedChatResult = JSON.parse(chatGenerationContent);
 		} catch (e) {
-			console.log('nonJSON response', e);
+			console.log('nonJSON response', e, parsedChatResult);
 		  return {
 			generations: [
 			  {
@@ -63,7 +91,9 @@ export default class OllamaAgentLlm extends OllamaFunctions {
 		const calledToolName = parsedChatResult.tool;
 		const calledToolArguments = parsedChatResult.tool_input;
 		const calledTool = functions.find((fn) => fn.name === calledToolName);
+
 		if (calledTool === undefined) {
+			console.log('TOOLS', functions, (options as any).tools!);
 		  throw new Error(
 			`Failed to parse a function call from ${this.llm.model} output: ${chatGenerationContent}`
 		  );
@@ -72,8 +102,9 @@ export default class OllamaAgentLlm extends OllamaFunctions {
 		  return {
 			generations: [
 			  {
-				message: new AIMessage({
+				message: new ToolMessage({
 				  content: calledToolArguments.response,
+				  tool_call_id: calledToolName + messages.length
 				}),
 				text: calledToolArguments.response,
 			  },
