@@ -1,22 +1,26 @@
 import { OllamaEmbeddings } from "@langchain/community/embeddings/ollama";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
+import { AgentExecutor } from "langchain/agents";
 import {
-	AgentExecutor,
-	createOpenAIFunctionsAgent,
-} from "langchain/agents";
-import { ChatPromptTemplate, MessagesPlaceholder } from "@langchain/core/prompts";
-import OllamaAgentLlm from "./ollama-agent-llm";
-import { createWebBrowser } from "./webbrowser";
-import { RunnableSequence } from "@langchain/core/runnables";
-
-import { formatToOpenAIFunctionMessages } from "langchain/agents/format_scratchpad";
-import { OpenAIFunctionsAgentOutputParser } from "langchain/agents/openai/output_parser";
+	ChatPromptTemplate,
+	MessagesPlaceholder,
+} from "@langchain/core/prompts";
+import {
+	RunnableSequence,
+	RunnablePassthrough,
+} from "@langchain/core/runnables";
+import {
+	OpenAIToolsAgentOutputParser,
+	type ToolsAgentStep,
+} from "langchain/agents/openai/output_parser";
 import { BaseMessage } from "@langchain/core/messages";
-
 import { zodToJsonSchema } from "zod-to-json-schema";
+import OllamaToolsLlm from "../llm/ollama-tools-llm";
+import { ChatMessageHistory } from "langchain/memory";
+import { createWebBrowser } from "tools/web-browser/webbrowser";
 
-let ollama = new OllamaAgentLlm({
-	model: "openchat",
+let ollama = new OllamaToolsLlm({
+	model: "llama3:instruct",
 	baseUrl: "http://192.168.1.252:11434",
 });
 
@@ -25,7 +29,7 @@ const textSplitter = RecursiveCharacterTextSplitter.fromLanguage("html", {
 	chunkOverlap: 20,
 });
 
-const tools  = [
+const tools = [
 	createWebBrowser({
 		model: ollama,
 		embeddings: new OllamaEmbeddings(),
@@ -35,65 +39,106 @@ const tools  = [
 
 const toolsJson = tools.map((tool) => ({
 	name: tool.name,
-	description : tool.description, 
-	arguments: zodToJsonSchema(tool.schema)}));
+	description: tool.description,
+	arguments: zodToJsonSchema(tool.schema),
+}));
 
 const toolsSchema = `{
-	"tools": {
-		 "tool": "<name of the selected tool>",
-		 "tool_input": <parameters for the selected tool, matching the tool's JSON schema
-	}
+	"tool_calls": [{
+		 "name": "<name of the selected tool>",
+		 "arguments": <parameters for the selected tool, matching the tool's JSON schema>
+	}]
  }`;
 
 export const runAgent = async () => {
 	const prompt = `
-You have access to the following tools:
-{tools}
+	Answer the following questions as best you can. You have access to the following tools:
 
-You MUST follow these instructions:
-1. You can select up to one tool at a time to respond to the user's query
-2. If you want to use a tool you must respond in the JSON format matching the following schema:
-{tools_schema}
-3. You will receive a response from the user with the result of the tool.
-4. If there is no tool that can help, and you do not know the answer, respond with an empty JSON.
-5. Do not add any additional notes or explanations to your response.
-6. Once finished, respond with the answer to the user's query and TERMINATE.`;
+	{tools}
+	
+	The way you use the tools is by specifying a JSON blob.		
+	The $JSON_BLOB should only contain a SINGLE action, do NOT return a list of multiple actions. Here is an example of a valid $JSON_BLOB: \n`+
+	"``` \n"+
+	"{tools_schema}"+
+	"```"+
+	`
+	ALWAYS use the following format:
+	
+	Question: the input question you must answer
+	Thought: you should always think about what to do
+	Action:`+
+	"``` \n"+
+	"$JSON_BLOB \n"+
+	"``` \n"+
+	`Observation: the result of the action
+	... (this Thought/Action/Observation can repeat N times)
+	Thought: I now know the final answer
+	Final Answer: <the final answer to the original input question>
+	
+	Begin! Reminder to always use the exact characters "Final Answer" when responding, along with the actual final answer to the user's query.`;
+	const chatHistory = new ChatMessageHistory();
+	
+	const MEMORY_KEY = "chat_history";
 
-const chatHistory: BaseMessage[] = [];
+	const chatPrompt = ChatPromptTemplate.fromMessages([
+		["system", prompt],
+		new MessagesPlaceholder(MEMORY_KEY),
+		["user", "{input}"],
+		["ai", "{agent_scratchpad}"],
+	]);
 
-const MEMORY_KEY = "chat_history";
-const chatPrompt = ChatPromptTemplate.fromMessages([
-	["system", prompt],
-	new MessagesPlaceholder(MEMORY_KEY),
-	["user", "{input}"],
-	["ai", "{agent_scratchpad}"]
-]);
+	const withTools = ollama.bindTools!(tools) as OllamaToolsLlm;
 
-const withTools = ollama.bindTools!(tools) as OllamaAgentLlm;
+	const parser = new OpenAIToolsAgentOutputParser();
 
-const agentWithMemory = RunnableSequence.from([
-	{
-	  input: (i) => i.input,
-	  agent_scratchpad: (i) => formatToOpenAIFunctionMessages(i.steps),
-	  chat_history: (i) => i.chat_history,
-	  tools: (i) => i.tools,
-	  tools_schema: (i) => i.tools_schema
-	},
-	chatPrompt,
-	withTools,
-	new OpenAIFunctionsAgentOutputParser(),
-  ]);
+	const parserFunc = (message: BaseMessage) => {
+		/*
+		if(message.content.toString().indexOf("TERMINATE") > -1){
+			console.log("received terminate message", message.content.toString());
+			message.additional_kwargs = {};
+			message.content = message.content.toString().replace("TERMINATE", "");
+		}
+		*/
 
+		const parsed = parser.parseAIMessage(message);
+
+		console.log('parsed result', parsed, message);
+
+		return parsed;
+	}
+
+	const agentWithMemory = RunnableSequence.from([
+		RunnablePassthrough.assign({
+			agent_scratchpad: (input: { steps: ToolsAgentStep[], tools: string, tools_schema: string, chat_history: ChatMessageHistory, input: string }) => {
+				return `Agent scratchpad:
+				${input.steps
+					.map((step) => JSON.stringify(step))
+					.join("\n")}`;
+			},
+			chat_history:  async (input: { steps: ToolsAgentStep[], tools: string, tools_schema: string, chat_history: ChatMessageHistory, input: string }) => {
+				return await input.chat_history.getMessages();
+			},
+		}),
+		chatPrompt,
+		withTools,
+		parserFunc
+	]);
+ 
 	const agentExecutor = new AgentExecutor({
 		agent: agentWithMemory,
 		tools,
-		verbose: true
+		verbose: false
 	});
 
+	const actionsSchema = `{
+		"action": $TOOL_NAME,
+		"action_input": $INPUT
+	  }`;
 	const result = await agentExecutor.invoke({
-		tools: toolsJson.map(tool => JSON.stringify(tool)).join("\n"),
+		tools: toolsJson.map((tool) => JSON.stringify(tool)).join("\n"),
 		input: "What is the website https://martynharris8.com about?",
 		tools_schema: toolsSchema,
+		tool_names: toolsJson.map((tool) => tool.name).join(", "),
 		chat_history: chatHistory
 	});
 

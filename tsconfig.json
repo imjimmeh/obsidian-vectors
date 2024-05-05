@@ -2,6 +2,7 @@
 	"extends": "@tsconfig/svelte/tsconfig.json",
 	"compilerOptions": {
 		"types": ["svelte", "node"],
+		"outDir": "./dist",
 		"baseUrl": ".",
 		"inlineSources": true,
 		"module": "ESNext",
