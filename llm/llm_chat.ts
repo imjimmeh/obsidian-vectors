@@ -8,7 +8,7 @@ import TypedContentRetriever, {
 import type BaseChatChain from "./base_chat_chain";
 import RagChatChain from "./rag_chat_chain";
 import SimpleChatChain from "./simple_chat_chain";
-import { Component, MarkdownRenderer } from "obsidian";
+import { runAgent } from "agents/ollama-agent";
 
 export default class LlmChat {
 	plugin: ObsidianVectorPlugin;
@@ -42,6 +42,9 @@ export default class LlmChat {
 		message: string,
 		options: MessageOptions
 	): Promise<AIMessage> {
+
+		return runAgent(message, this.retriever);
+		
 		for (const chain of this.chains) {
 			if (chain.acceptsOptions(options)) {
 				return chain.sendMessage(message);

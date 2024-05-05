@@ -15,9 +15,10 @@ import {
 import { MemoryVectorStore } from "langchain/vectorstores/memory";
 import { formatDocumentsAsString } from "langchain/util/document";
 import { type BaseLangChainParams } from "@langchain/core/language_models/base";
-export interface ToolParams extends BaseLangChainParams {}
 import { z } from "zod";
 import { DynamicStructuredTool } from "@langchain/core/tools";
+
+export interface ToolParams extends BaseLangChainParams {}
 
 export const parseInputs = (inputs: string): [string, string] => {
 	const [baseUrl, task] = inputs.split(",").map((input) => {

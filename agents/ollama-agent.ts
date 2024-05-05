@@ -13,12 +13,15 @@ import {
 	OpenAIToolsAgentOutputParser,
 	type ToolsAgentStep,
 } from "langchain/agents/openai/output_parser";
-import { BaseMessage } from "@langchain/core/messages";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import OllamaToolsLlm from "../llm/ollama-tools-llm";
 import { ChatMessageHistory } from "langchain/memory";
 import { createWebBrowser } from "tools/web-browser/webbrowser";
+import type { ContentRetriever } from "retrievers/content_retriever";
+import { createRetrieverTool } from "tools/retriever-tool/retriever-tool";
 
+
+export const runAgent = async (query: string, retriever: ContentRetriever) => {
 let ollama = new OllamaToolsLlm({
 	model: "llama3:instruct",
 	baseUrl: "http://192.168.1.252:11434",
@@ -34,7 +37,8 @@ const tools = [
 		model: ollama,
 		embeddings: new OllamaEmbeddings(),
 		textSplitter: textSplitter,
-	})
+	}),
+	createRetrieverTool(retriever),
 ];
 
 const toolsJson = tools.map((tool) => ({
@@ -49,8 +53,6 @@ const toolsSchema = `{
 		 "arguments": <parameters for the selected tool, matching the tool's JSON schema>
 	}]
  }`;
-
-export const runAgent = async () => {
 	const prompt = `
 	Answer the following questions as best you can. You have access to the following tools:
 
@@ -91,22 +93,6 @@ export const runAgent = async () => {
 
 	const parser = new OpenAIToolsAgentOutputParser();
 
-	const parserFunc = (message: BaseMessage) => {
-		/*
-		if(message.content.toString().indexOf("TERMINATE") > -1){
-			console.log("received terminate message", message.content.toString());
-			message.additional_kwargs = {};
-			message.content = message.content.toString().replace("TERMINATE", "");
-		}
-		*/
-
-		const parsed = parser.parseAIMessage(message);
-
-		console.log('parsed result', parsed, message);
-
-		return parsed;
-	}
-
 	const agentWithMemory = RunnableSequence.from([
 		RunnablePassthrough.assign({
 			agent_scratchpad: (input: { steps: ToolsAgentStep[], tools: string, tools_schema: string, chat_history: ChatMessageHistory, input: string }) => {
@@ -121,7 +107,7 @@ export const runAgent = async () => {
 		}),
 		chatPrompt,
 		withTools,
-		parserFunc
+		parser
 	]);
  
 	const agentExecutor = new AgentExecutor({
@@ -130,17 +116,13 @@ export const runAgent = async () => {
 		verbose: false
 	});
 
-	const actionsSchema = `{
-		"action": $TOOL_NAME,
-		"action_input": $INPUT
-	  }`;
 	const result = await agentExecutor.invoke({
 		tools: toolsJson.map((tool) => JSON.stringify(tool)).join("\n"),
-		input: "What is the website https://martynharris8.com about?",
+		input: query,
 		tools_schema: toolsSchema,
 		tool_names: toolsJson.map((tool) => tool.name).join(", "),
 		chat_history: chatHistory
 	});
 
-	console.log(result);
+	return result.output.replace("Final Answer: ", "");
 };

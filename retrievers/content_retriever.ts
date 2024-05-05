@@ -1,4 +1,3 @@
-import { ParentDocumentRetriever } from "langchain/retrievers/parent_document";
 import { MultiQueryRetriever } from "langchain/retrievers/multi_query";
 import { ScoreThresholdRetriever } from "langchain/retrievers/score_threshold";
 import LlmChat from "llm/llm_chat";
