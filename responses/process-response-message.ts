@@ -48,21 +48,21 @@ function extractToolCalls(content: string): {
 }
 
 function tryParseCodeblocks(content: string): { success: boolean, toolCalls?: ToolCall[]}{
-	const codeblockRegex = /`([\s\S]*?)`/gm;
-	let match;
+	const codeblockRegex = /```(.*?)```/gs
+	const matches = [...content.matchAll(codeblockRegex)];
 	
-	while ((match = codeblockRegex.exec(content)) !== null) {
-		const code = match[1].split("\n").slice(1).join("\n");
-		console.log("Found a code block:", code);
-		const parsed = tryParseJsonToolCall(code);
+	for(const match of matches){
+		if(!match[1]) continue;
+
+		const cleaned = match[1].split("\n").slice(1).join("\n").trim();
+		console.log('cleande', cleaned, match[1]);
+		const parsed = tryParseJsonToolCall(match[1]);
+
 		if(parsed.success){
-			return {
-				success: true,
-				toolCalls: parsed.toolCalls
-			};
+			return parsed;
 		}
 	}
-
+	
 	return {
 		success: false
 	}

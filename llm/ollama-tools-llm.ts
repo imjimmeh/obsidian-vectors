@@ -5,7 +5,9 @@ import {
 import { ChatOllama } from "@langchain/community/chat_models/ollama";
 import {
 	BaseMessage,
+	AIMessage,
 	AIMessageChunk,
+	ToolMessage
 } from "@langchain/core/messages";
 import type {
 	OllamaCallOptions,
@@ -58,12 +60,7 @@ export default class OllamaToolsLlm extends BaseChatModel<OllamaToolsChatOptions
 		options: this["ParsedCallOptions"],
 		runManager?: CallbackManagerForLLMRun | undefined
 	): Promise<ChatResult> {
-		{
-			console.log('generating respond with ' + messages.length + " messages");
-			for(const message of messages){
-				console.log(message);
-			}
-			
+		{			
 			if (!messages.length) {
 				throw new Error("No messages provided");
 			}
@@ -72,20 +69,28 @@ export default class OllamaToolsLlm extends BaseChatModel<OllamaToolsChatOptions
 				throw new Error("Multimodal messages are not supported");
 			}
 
+			messages = messages.map(message => {
+				if(message._getType() == "function" || message._getType() == "tool"){
+					return new AIMessage({
+						content: message.content,
+					});
+				}
+
+				return message;
+			});
+			
 			const result = await this.innerModel._generate(
 				messages,
 				options,
 				runManager
 			);
-
+			
 			const generations = result.generations
 				.map((generation) => processAiResponseMessage(generation.text))
 				.map((aiMessage) => ({
 					message: aiMessage,
 					text: aiMessage.content.toString(),
 				}));
-
-			console.log('responding');
 
 			return {
 				generations: generations,

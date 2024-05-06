@@ -89,6 +89,10 @@ export const getText = (
 };
 
 const getHtml = async (baseUrl: string, h: Headers) => {
+	if(!baseUrl.startsWith("http")){
+		baseUrl = "https://" + baseUrl;
+	}
+	
 	const domain = new URL(baseUrl).hostname;
 
 	const headers = { ...h };
