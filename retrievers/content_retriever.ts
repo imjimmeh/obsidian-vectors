@@ -5,6 +5,12 @@ import { VectorStore } from "@langchain/core/vectorstores";
 import { PromptTemplate } from "@langchain/core/prompts";
 import type ObsidianVectorPlugin from "vector_plugin";
 import type { DocumentInterface } from "@langchain/core/documents";
+import { createRetrievalChain } from "langchain/chains/retrieval";
+import { createStuffDocumentsChain } from "langchain/chains/combine_documents";
+import { BaseOutputParser } from "@langchain/core/output_parsers";
+import type { LanguageModelLike } from "@langchain/core/language_models/base";
+import { BasePromptTemplate } from "@langchain/core/prompts";
+import { RunnableSequence } from "@langchain/core/runnables";
 
 const template = `You are an AI designed to help users answer queries.
 You have access to a vector database, which contains all of the user's notes.
@@ -56,14 +62,29 @@ Query:
 export abstract class ContentRetriever {
 	protected plugin: ObsidianVectorPlugin;
 	protected llm: LlmChat;
-	constructor(llm: LlmChat, plugin: ObsidianVectorPlugin) {
+	protected vectorStore: VectorStore;
+
+	constructor(llm: LlmChat, plugin: ObsidianVectorPlugin, vectorStore: VectorStore) {
 		this.llm = llm;
 		this.plugin = plugin;
+		this.vectorStore = vectorStore;
 	}
 
 	abstract invoke(
 		input: string
 	): Promise<DocumentInterface<Record<string, any[]>>[]>;
+
+	async createRetrievalChain<TOutput = string>(args: {prompt: BasePromptTemplate, outputParser?: BaseOutputParser<TOutput>;
+		documentPrompt?: BasePromptTemplate;
+		documentSeparator?: string;
+	}) {
+		const documentsChain = await createStuffDocumentsChain({llm: this.llm.llm, ...args});
+
+		return createRetrievalChain({
+			retriever: this.vectorStore.asRetriever(),
+			combineDocsChain: documentsChain
+		});
+	}
 }
 
 export default class TypedContentRetriever<
@@ -78,7 +99,7 @@ export default class TypedContentRetriever<
 		llm: LlmChat,
 		plugin: ObsidianVectorPlugin
 	) {
-		super(llm, plugin);
+		super(llm, plugin, vectorStore);
 
 		this.similarityScoreRetriever = new ScoreThresholdRetriever({
 			minSimilarityScore:

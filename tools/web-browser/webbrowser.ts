@@ -89,10 +89,10 @@ export const getText = (
 };
 
 const getHtml = async (baseUrl: string, h: Headers) => {
-	if(!baseUrl.startsWith("http")){
+	if (!baseUrl.startsWith("http")) {
 		baseUrl = "https://" + baseUrl;
 	}
-	
+
 	const domain = new URL(baseUrl).hostname;
 
 	const headers = { ...h };
@@ -216,8 +216,9 @@ export class WebBrowser {
 		task?: string,
 		runManager?: CallbackManagerForToolRun
 	) {
-    task = !task || task.trim() == "summary" ? "create a summary" : task;
 		const doSummary = !task || task.trim() == "summary";
+
+		task = !task || task.trim() == "summary" ? "create a summary" : task;
 
 		let text;
 
@@ -246,12 +247,14 @@ export class WebBrowser {
 			docs,
 			this.embeddings
 		);
+
 		const results = await vectorStore.similaritySearch(
 			task,
 			10,
 			undefined,
 			runManager?.getChild("vectorstore")
 		);
+		
 		context = formatDocumentsAsString(results);
 
 		const input = `Using the text below, you need to:

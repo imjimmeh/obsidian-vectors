@@ -3,7 +3,7 @@ import type { AIMessage, MessageOptions } from "chat/types";
 import BaseChatChain from "./base_chat_chain";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import type { BaseTransformOutputParser } from "@langchain/core/output_parsers";
-import type { SimpleChatModel } from "langchain/chat_models/base";
+import type { BaseChatModel, SimpleChatModel } from "langchain/chat_models/base";
 
 const prompt = ChatPromptTemplate.fromTemplate(
 	"You are an amazing AI designed to help users with their queries. Answer the question from the user:\n\nQuestion: {question}"
@@ -11,7 +11,7 @@ const prompt = ChatPromptTemplate.fromTemplate(
 
 export default class SimpleChatChain extends BaseChatChain {
 	constructor(
-		chatModel: SimpleChatModel,
+		chatModel: BaseChatModel,
 		parser: BaseTransformOutputParser<unknown>
 	) {
 		super(chatModel, prompt, parser);

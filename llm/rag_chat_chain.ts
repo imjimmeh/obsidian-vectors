@@ -8,7 +8,7 @@ import type { AIMessage, MessageOptions } from "chat/types";
 import BaseChatChain from "./base_chat_chain";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import type { BaseTransformOutputParser } from "@langchain/core/output_parsers";
-import type { SimpleChatModel } from "langchain/chat_models/base";
+import type { BaseChatModel } from "langchain/chat_models/base";
 import type { ContentRetriever } from "retrievers/content_retriever";
 import { Document } from "@langchain/core/documents";
 
@@ -19,7 +19,7 @@ const prompt = ChatPromptTemplate.fromTemplate(
 export default class RagChatChain extends BaseChatChain {
 	private retriever: ContentRetriever;
 	constructor(
-		chatModel: SimpleChatModel,
+		chatModel: BaseChatModel,
 		parser: BaseTransformOutputParser<unknown>,
 		retriever: ContentRetriever
 	) {

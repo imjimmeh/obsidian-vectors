@@ -25,11 +25,11 @@ import { processAiResponseMessage } from "responses/process-response-message";
 export default class OllamaToolsLlm extends BaseChatModel<OllamaToolsChatOptions> {
 	tools: StructuredToolInterface[] | undefined;
 
-	private innerModel: ChatOllama;
+	private innerModel: BaseChatModel;
 
-	constructor(fields: OllamaFunctionsInput) {
+	constructor(fields: OllamaFunctionsInput, innerModel: BaseChatModel) {
 		super(fields);
-		this.innerModel = new ChatOllama(fields);
+		this.innerModel = innerModel;
 	}
 
 	override bindTools(
@@ -69,15 +69,7 @@ export default class OllamaToolsLlm extends BaseChatModel<OllamaToolsChatOptions
 				throw new Error("Multimodal messages are not supported");
 			}
 
-			messages = messages.map(message => {
-				if(message._getType() == "function" || message._getType() == "tool"){
-					return new AIMessage({
-						content: message.content,
-					});
-				}
-
-				return message;
-			});
+			messages = this.convertToolAndFunctionMessages(messages);
 			
 			const result = await this.innerModel._generate(
 				messages,
@@ -97,5 +89,18 @@ export default class OllamaToolsLlm extends BaseChatModel<OllamaToolsChatOptions
 				llmOutput: result.llmOutput
 			};
 		}
+	}
+
+	private convertToolAndFunctionMessages(messages: BaseMessage[]) {
+		messages = messages.map(message => {
+			if (message._getType() == "function" || message._getType() == "tool") {
+				return new AIMessage({
+					content: message.content,
+				});
+			}
+
+			return message;
+		});
+		return messages;
 	}
 }

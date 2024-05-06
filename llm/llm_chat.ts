@@ -8,23 +8,32 @@ import TypedContentRetriever, {
 import type BaseChatChain from "./base_chat_chain";
 import RagChatChain from "./rag_chat_chain";
 import SimpleChatChain from "./simple_chat_chain";
-import { runAgent } from "agents/ollama-agent";
+import OllamaToolsLlm from "./ollama-tools-llm";
+import AgentChatChain from "./agent_chat_chain";
+import { OllamaEmbeddings } from "@langchain/community/embeddings/ollama";
+import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 
 export default class LlmChat {
 	plugin: ObsidianVectorPlugin;
-	llm: ChatOllama;
+	llm: OllamaToolsLlm;
 	retriever: ContentRetriever;
 	parser = new StringOutputParser();
 
 	private chains: BaseChatChain[] = [];
+private agent: AgentChatChain;
 
 	constructor(plugin: ObsidianVectorPlugin) {
 		this.plugin = plugin;
 
-		this.llm = new ChatOllama({
+		const innerModel = new ChatOllama({
 			baseUrl: this.plugin.settings.llmSettings.base_url,
 			model: this.plugin.settings.llmSettings.model,
 		});
+
+		this.llm = new OllamaToolsLlm({
+			baseUrl: this.plugin.settings.llmSettings.base_url,
+			model: this.plugin.settings.llmSettings.model,
+		}, innerModel);
 
 		this.retriever = new TypedContentRetriever(
 			this.plugin.vectorStore!._db,
@@ -36,6 +45,11 @@ export default class LlmChat {
 			new RagChatChain(this.llm, this.parser, this.retriever)
 		);
 		this.chains.push(new SimpleChatChain(this.llm, this.parser));
+
+		this.agent = new AgentChatChain(new OllamaEmbeddings({ baseUrl: this.plugin.settings.llmSettings.base_url}), new RecursiveCharacterTextSplitter({
+			chunkSize: 1000,
+			chunkOverlap: 200
+		}), this.llm, this.parser, this.retriever);
 	}
 
 	async sendMessage(
@@ -43,7 +57,7 @@ export default class LlmChat {
 		options: MessageOptions
 	): Promise<AIMessage> {
 
-		return runAgent(message, this.retriever);
+		return this.agent.sendMessage(message);
 		
 		for (const chain of this.chains) {
 			if (chain.acceptsOptions(options)) {

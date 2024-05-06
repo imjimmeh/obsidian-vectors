@@ -1,3 +1,3 @@
-import { runAgent } from "agents/ollama-agent";
+import ObsidianVectorPlugin from "vector_plugin";
 
-runAgent("What is the website www.martynharris8.com about?").then((resp) => console.log(resp));
+export default ObsidianVectorPlugin;

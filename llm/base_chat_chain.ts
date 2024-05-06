@@ -3,10 +3,10 @@ import { Runnable } from "@langchain/core/runnables";
 import { BaseTransformOutputParser } from "@langchain/core/output_parsers";
 import type { AIMessage, MessageOptions } from "chat/types";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
-import { SimpleChatModel } from "langchain/chat_models/base";
+import { BaseChatModel, SimpleChatModel } from "langchain/chat_models/base";
 
 export default abstract class BaseChatChain {
-	chatModel: SimpleChatModel;
+	chatModel: BaseChatModel;
 	prompt: ChatPromptTemplate;
 	parser: BaseTransformOutputParser<unknown>;
 
@@ -14,7 +14,7 @@ export default abstract class BaseChatChain {
 	private _runnable: Runnable;
 
 	constructor(
-		chatModel: SimpleChatModel,
+		chatModel: BaseChatModel,
 		prompt: ChatPromptTemplate,
 		parser: BaseTransformOutputParser<unknown>
 	) {
